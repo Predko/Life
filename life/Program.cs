@@ -13,7 +13,7 @@ namespace life
 {
 	
 	// кординаты ячеёки
-	struct Coord {
+	public struct Coord {
 		public int	x,y;
 	}
 	
@@ -23,11 +23,11 @@ namespace life
 	}
 	
 	
-	enum Calccmd {set_status, calc_cell, del_calc_func};
-	enum Cell_is {yes, no};
+	public enum Calccmd {set_status, calc_cell, del_calc_func};
+	public enum Cell_is {yes, no};
 
 		
-	class  Cell: IDraw  {
+	public class  Cell: IDraw  {
 		public char		C {get; private set;}	// символ L  или E - есть клетка или нет
 		public bool		gen;				// поколение клетки: true - первое, false - нулевое
 		public bool		ischange;		// изменение клетки: true - должно измениться, false - нет
@@ -36,14 +36,18 @@ namespace life
 		public int		Y {get; set;}           // координаты ячейки
 
 		public const char L = '0';	// Клетка есть
-		public const char E = ' ';	// Клетки нет
+		public const char E = ' ';  // Клетки нет
+
+		private readonly Field Field;
 		
 		public bool	IsLive() {
 			return gen && C == L; // клетка первого поколения(не только что созданная) и клетка живая
 		}
 		
 
-		public Cell(int px = 0, int py = 0) {
+		public Cell(Field fld, int px = 0, int py = 0) 
+		{
+			Field = fld;
 			SetCell();
 			X = px; Y = py;
 		}
@@ -122,17 +126,20 @@ namespace life
 	
 	// Индексатор с круговыми индексами
 	
-	class CellArray {
+	public class CellArray {
 		readonly Cell[,]	cells;
 		private readonly int mi;
 		private readonly int mj;
 
-		public CellArray(int i, int j)  {
+		
+
+		public CellArray(Field fld, int i, int j)  
+		{
 			cells = new Cell[i, j];
 			// инициализация всех ячеек
 			for (int k = 0; k != i; k++)
 				for (int m = 0; m != j; m++)
-					cells[k,m] = new Cell(k, m);
+					cells[k,m] = new Cell(fld, k, m);
 				
 			mi = i;
 			mj = j;
@@ -167,26 +174,26 @@ namespace life
 		
 	}
 	
-	delegate void CalcCell(Calccmd cng);
+	public delegate void CalcCell(Calccmd cng);
 	
 	// поле, верхняя часть соединена с нижней, левая с правой
-	static class Field {
-		private static readonly int 	length;
-		private static readonly int 	width;
+	public class Field {
+		private readonly int 	length;
+		private readonly int 	width;
 
 		// массив координат ячеек вокруг данной
-		private static readonly Coord[] Cxy = new Coord[8];
+		private readonly Coord[] Cxy = new Coord[8];
 		
-		public static CellArray fld;
+		public CellArray fld;
 
 		
-		public static event CalcCell ListCells;
+		public event CalcCell ListCells;
 		
 		
-		static Field() {
+		public Field() {
 			length = Console.WindowHeight - 1;
 			width = Console.WindowWidth ;
-			fld = new CellArray(width, length);
+			fld = new CellArray(this, width, length);
 			Cxy[0].x = -1; Cxy[0].y = -1; Cxy[1].x = -1; Cxy[1].y = 0; Cxy[2].x = -1; Cxy[2].y = 1;
 			Cxy[3].x = 0; Cxy[3].y = -1; Cxy[4].x = 0; Cxy[4].y = 1;
 			Cxy[5].x = 1; Cxy[5].y = -1; Cxy[6].x = 1; Cxy[6].y = 0; Cxy[7].x = 1; Cxy[7].y = 1;
@@ -196,7 +203,7 @@ namespace life
 			FieldInit();
 		}
 		
-		public static void FieldInit() {
+		public void FieldInit() {
 			
 			for(int x = 0; x != width; x++)
 				for(int y = 0; y != length; y++) {
@@ -208,7 +215,7 @@ namespace life
 				}
 		}
 
-		public static void ClearField() {
+		public void ClearField() {
 
 			for(int x = 0; x != width; x++)
 				for(int y = 0; y != length; y++) {
@@ -226,7 +233,7 @@ namespace life
 		// ввод живых ячеек с помощью мыши
 		
 		
-		public static void EnterCells() {
+		public void EnterCells() {
 
 #region заполняем случайным образом (пробный вариант)
 			Random rnd = new Random();
@@ -259,7 +266,7 @@ namespace life
 
 		
 		// проверяем, находится ли рядом с данной ячейкой, хотя бы одна живая ячейка.
-		public static bool IsAddlist(int x, int y){
+		public bool IsAddlist(int x, int y){
 		
 			foreach(Coord i in Cxy)
 				if (fld[x + i.x, y + i.y].IsLive()) return true;
@@ -268,7 +275,7 @@ namespace life
 		}
 		
 		// подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки: true - live, false - dead
-		public static int IsLiveCount(int x, int y, bool status) {
+		public int IsLiveCount(int x, int y, bool status) {
 
 			int count = 0;   // счётчик живых ячеек первого поколения вокруг данной
 
@@ -289,7 +296,7 @@ namespace life
 			return count;
 		}
 		
-		public static void OnListCells() {
+		public void OnListCells() {
 			
 			if (ListCells != null) {
 				
@@ -299,10 +306,9 @@ namespace life
 			}
 		}
 
-		public static void ClearListCells() {
-			
-			if (ListCells != null)
-				ListCells (Calccmd.del_calc_func);	// удаляем все обработчики события
+		public void ClearListCells() {
+
+			ListCells?.Invoke(Calccmd.del_calc_func);   // удаляем все обработчики события
 		}
 		
 		
@@ -318,9 +324,13 @@ namespace life
 		public static void Main(string[] args)
 		{
 			ConsoleKeyInfo keypress;
+			Field Field;
 			int count = 0;
 			
 			Console.Clear();
+
+			Field = new Field();
+
 			do {
 				Field.OnListCells();
 
