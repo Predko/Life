@@ -1,11 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
 using System.Text;
 
 namespace life
 {
-	public delegate void CalcCell(Calccmd cng);
+	public struct FieldLocation
+	{
+		public int X;
+		public int Y;
+
+		public FieldLocation(int x, int y)
+		{
+			X = x;
+			Y = y;
+		}
+
+		//public static implicit operator FieldLocation(Point p)
+		//{
+		//	return new FieldLocation() { X = p.X, Y = p.Y };
+		//}
+
+	}
+
+	public delegate void CalcCell(CellEvent ce);
 
 	// поле, верхняя часть соединена с нижней, левая с правой
 	public class Field
@@ -13,8 +31,13 @@ namespace life
 		private readonly int length;
 		private readonly int width;
 
+		public Size CellSize { get; set; }
+
+		public Brush brushCellYes;
+		public Brush brushCellNo; 
+
 		// массив координат ячеек вокруг данной
-		private readonly Coord[] Cxy = new Coord[8];
+		private readonly FieldLocation[] Dxy = new FieldLocation[8];
 
 		public CellArray fld;
 
@@ -22,15 +45,16 @@ namespace life
 		public event CalcCell ListCells;
 
 
-		public Field()
+		// Длина и ширина в ячейках игрового поля
+		public Field(int lenght, int width)
 		{
-			length = Console.WindowHeight - 1;
-			width = Console.WindowWidth;
-			fld = new CellArray(this, width, length);
+			this.length = lenght;
+			this.width = width;
+			fld = new CellArray(this, length, width);
 
-			Cxy[0].x = -1; Cxy[0].y = -1; Cxy[1].x = -1; Cxy[1].y = 0; Cxy[2].x = -1; Cxy[2].y = 1;
-			Cxy[3].x = 0; Cxy[3].y = -1; Cxy[4].x = 0; Cxy[4].y = 1;
-			Cxy[5].x = 1; Cxy[5].y = -1; Cxy[6].x = 1; Cxy[6].y = 0; Cxy[7].x = 1; Cxy[7].y = 1;
+			Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
+			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
+			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
 			EnterCells();
 
@@ -44,8 +68,6 @@ namespace life
 			{
 				for (int y = 0; y != length; y++)
 				{
-					fld[x, y].Draw();
-
 					if (fld[x, y].Status == StatusCell.Yes || IsAddlist(x, y))
 					{
 						ListCells += fld[x, y].Calc;
@@ -63,20 +85,37 @@ namespace life
 				for (int y = 0; y != length; y++)
 				{
 					fld[x, y].SetNo();
-					fld[x, y].Draw();
 				}
 			}
 
 			ClearListCells();
 		}
 
-		// проверяем, находится ли рядом с данной ячейкой, хотя бы одна живая ячейка.
+		public void DrawAll(Graphics g)
+		{
+			for (int x = 0; x != width; x++)
+			{
+				for (int y = 0; y != length; y++)
+				{
+					fld[x, y].Draw(g);
+				}
+			}
+		}
+
+		public void Draw(Graphics g)
+		{
+			ListCells?.Invoke(new CellEvent(Calccmd.del_calc_func, g));
+		}
+
+
+
+		// проверяем, нужно ли добавить ячейку в список событий.
+		// (находится ли рядом с данной ячейкой, хотя бы одна живая ячейка)
 		public bool IsAddlist(int x, int y)
 		{
-
-			foreach (Coord i in Cxy)
+			foreach (FieldLocation i in Dxy)
 			{
-				if (fld[x + i.x, y + i.y].IsLive())
+				if (fld[x + i.X, y + i.Y].IsLive())
 				{
 					return true;
 				}
@@ -92,20 +131,20 @@ namespace life
 			int count = 0;   // счётчик живых ячеек первого поколения вокруг данной
 
 
-			foreach (Coord i in Cxy)
+			foreach (FieldLocation l in Dxy)
 			{
 
 				if (status)                               // если вызывающая клетка есть
 				{
-					if (!fld[x + i.x, y + i.y].active)
+					if (!fld[x + l.X, y + l.X].active)
 					{  // добавляем найденную в список событий, если ещё не добавлена
-						ListCells += fld[x + i.x, y + i.y].Calc;
+						ListCells += fld[x + l.X, y + l.Y].Calc;
 
-						fld[x + i.x, y + i.y].active = true;
+						fld[x + l.X, y + l.Y].active = true;
 					}
 				}
 
-				if (fld[x + i.x, y + i.y].IsLive())     // если найденная клетка живая - увеличиваем счётчик
+				if (fld[x + l.X, y + l.Y].IsLive())     // если найденная клетка живая - увеличиваем счётчик
 				{
 					count++;
 				}
@@ -119,15 +158,15 @@ namespace life
 		{
 			if (ListCells != null)
 			{
-				ListCells(Calccmd.set_status);  // фиксируем изменения прошлого хода
+				ListCells(new CellEvent(Calccmd.set_status));  // фиксируем изменения прошлого хода
 
-				ListCells(Calccmd.calc_cell);   // делаем новый ход (вычисляем)
+				ListCells(new CellEvent(Calccmd.calc_cell));   // делаем новый ход (вычисляем)
 			}
 		}
 
 		public void ClearListCells()
 		{
-			ListCells?.Invoke(Calccmd.del_calc_func);   // удаляем все обработчики события
+			ListCells?.Invoke(new CellEvent(Calccmd.del_calc_func));   // удаляем все обработчики события
 		}
 
 		// Заполнение поля клетками случайным образом

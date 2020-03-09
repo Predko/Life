@@ -1,8 +1,8 @@
 ﻿namespace life
 {
-    partial class Life
+    partial class LifeForm
     {
-        /// <summary>
+ /*       /// <summary>
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
@@ -35,5 +35,5 @@
         }
 
         #endregion
-    }
+*/    }
 }

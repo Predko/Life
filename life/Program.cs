@@ -7,6 +7,7 @@
  * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
+using System.Windows.Forms;
 
 
 namespace life
@@ -15,14 +16,11 @@ namespace life
 	{
 		public static void Main()
 		{
-			ConsoleKeyInfo keypress;
-			Field Field;
-			int count = 0;
-			
-			Console.Clear();
 
-			Field = new Field();
+			Application.Run(new LifeForm());
 
+
+/*
 			do 
 			{
 				Field.OnListCells();
@@ -61,7 +59,7 @@ namespace life
 
 			} 
 			while (keypress.KeyChar != 'q');
-				
+*/				
 		}
 	}
 }
