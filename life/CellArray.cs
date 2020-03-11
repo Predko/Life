@@ -15,20 +15,20 @@ namespace life
 
 
 
-		public CellArray(Field fld, int i, int j)
+		public CellArray(Field fld, int x, int y)
 		{
-			cells = new Cell[i, j];
+			cells = new Cell[x, y];
 			// инициализация всех ячеек
-			for (int k = 0; k != i; k++)
+			for (int k = 0; k != x; k++)
 			{
-				for (int m = 0; m != j; m++)
+				for (int m = 0; m != y; m++)
 				{
 					cells[k, m] = new Cell(fld, k, m);
 				}
 			}
 
-			mi = i;
-			mj = j;
+			mi = x;
+			mj = y;
 		}
 
 		// индексатор

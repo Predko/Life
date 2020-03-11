@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
+using System.Linq;
 
 namespace life
 {
@@ -28,8 +28,8 @@ namespace life
 	// поле, верхняя часть соединена с нижней, левая с правой
 	public class Field
 	{
-		private readonly int length;
 		private readonly int width;
+		private readonly int height;
 
 		public Size CellSize { get; set; }
 
@@ -41,61 +41,39 @@ namespace life
 
 		public CellArray fld;
 
+		public readonly List<Cell> listCellToDraw;
 
 		public event CalcCell ListCells;
 
 
 		// Длина и ширина в ячейках игрового поля
-		public Field(int lenght, int width)
+		public Field(int width, int height)
 		{
-			this.length = lenght;
+			this.height = height;
 			this.width = width;
-			fld = new CellArray(this, length, width);
+			fld = new CellArray(this, width, height);
 
 			Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
 			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
-			EnterCells();
-
-			FieldInit();
+			listCellToDraw = new List<Cell>();
 		}
 
-		public void FieldInit()
+		public void CalcNextStep()
 		{
-
-			for (int x = 0; x != width; x++)
+			if (ListCells != null)
 			{
-				for (int y = 0; y != length; y++)
-				{
-					if (fld[x, y].Status == StatusCell.Yes || IsAddlist(x, y))
-					{
-						ListCells += fld[x, y].Calc;
-						fld[x, y].active = true;
-					}
-				}
+				ListCells?.Invoke(new CellEvent(Calccmd.calc_cell));	// рассчитываем состояние клеток для следующего шага
+				ListCells?.Invoke(new CellEvent(Calccmd.set_status));	// фиксируем рассчитанные изменения
 			}
-		}
-
-		public void ClearField()
-		{
-
-			for (int x = 0; x != width; x++)
-			{
-				for (int y = 0; y != length; y++)
-				{
-					fld[x, y].SetNo();
-				}
-			}
-
-			ClearListCells();
 		}
 
 		public void DrawAll(Graphics g)
 		{
 			for (int x = 0; x != width; x++)
 			{
-				for (int y = 0; y != length; y++)
+				for (int y = 0; y != height; y++)
 				{
 					fld[x, y].Draw(g);
 				}
@@ -104,10 +82,13 @@ namespace life
 
 		public void Draw(Graphics g)
 		{
-			ListCells?.Invoke(new CellEvent(Calccmd.del_calc_func, g));
+			foreach (var cl in listCellToDraw)
+			{
+				cl.Draw(g);
+			}
+
+			listCellToDraw.Clear();
 		}
-
-
 
 		// проверяем, нужно ли добавить ячейку в список событий.
 		// (находится ли рядом с данной ячейкой, хотя бы одна живая ячейка)
@@ -154,19 +135,20 @@ namespace life
 			return count;
 		}
 
-		public void OnListCells()
+		public void FieldInit()
 		{
-			if (ListCells != null)
+
+			for (int x = 0; x != width; x++)
 			{
-				ListCells(new CellEvent(Calccmd.set_status));  // фиксируем изменения прошлого хода
-
-				ListCells(new CellEvent(Calccmd.calc_cell));   // делаем новый ход (вычисляем)
+				for (int y = 0; y != height; y++)
+				{
+					if (fld[x, y].Status == StatusCell.Yes || IsAddlist(x, y))
+					{
+						ListCells += fld[x, y].Calc;
+						fld[x, y].active = true;
+					}
+				}
 			}
-		}
-
-		public void ClearListCells()
-		{
-			ListCells?.Invoke(new CellEvent(Calccmd.del_calc_func));   // удаляем все обработчики события
 		}
 
 		// Заполнение поля клетками случайным образом
@@ -176,17 +158,17 @@ namespace life
 
 			for (int x = 0; x != width; x++)
 			{
-				for (int y = 0; y != length; y++)
+				for (int y = 0; y != height; y++)
 				{
 
 					int r = rnd.Next(300);
 					if (r > 100 && r < 200)
 					{
-						fld[x, y].SetYes(); // клетка есть
+						fld[x, y].SetCellYes(); // клетка есть
 					}
 					else
 					{
-						fld[x, y].SetNo();  // клетки нет
+						fld[x, y].SetCellNo();  // клетки нет
 					}
 				}
 			}

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -17,6 +16,8 @@ namespace life
 
         private int fieldX = 100;        // Размер поля 
         private int fieldY = 80;        // в ячейках
+
+        private Timer timer;            // 
 
 
         public LifeForm()
@@ -37,6 +38,8 @@ namespace life
             Text = "Life";
             BackColor = SystemColors.Window;
             ResizeRedraw = true;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
         }
 
 
@@ -44,7 +47,7 @@ namespace life
         {
             count = 0;
 
-            field = new Field(100, 80);
+            field = new Field(fieldX, fieldY);
 
             // Корректируем размер рабочей области формы кратно размерам поля
             ClientSize = new Size()
@@ -60,11 +63,38 @@ namespace life
                                 Height = ClientSize.Height / fieldY 
                             };
 
-            field.brushCellYes = Brushes.BlueViolet;
-            field.brushCellNo = new SolidBrush( this.BackColor);
+            field.brushCellYes = Brushes.AliceBlue;
+            field.brushCellNo = Brushes.LightGray;
 
             field.EnterCells();
             field.FieldInit();
+
+            timer = new Timer
+            {
+                Interval = 300
+            };
+            
+            timer.Tick += Timer_Tick;
+            //timer.Start();
+
+            KeyUp += LifeForm_KeyUp;
+
+           
+        }
+
+        private void LifeForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Space)
+            {
+                field.CalcNextStep();
+                Invalidate();
+            }
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            field.CalcNextStep();
+            Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)

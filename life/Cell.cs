@@ -37,20 +37,21 @@ namespace life
 		private readonly Field field;
 		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
 
-		public bool gen;                // поколение клетки: true - первое, false - нулевое
 		public bool ischange;			// изменение клетки: true - должно измениться, false - нет
 		public bool active;             // активная ячейка(true)- добавлена в список событий
+		public bool isNeedRedraw;		// требуется перерисовка
 
 
 		public bool IsLive()
 		{
-			return gen && Status == StatusCell.Yes; // клетка первого поколения(не только что созданная) и клетка живая
+			return Status == StatusCell.Yes; // клетка первого поколения(не только что созданная) и клетка живая
 		}
 
 
 		public Cell(Field fld, FieldLocation fl)
 		{
 			field = fld;
+			Status = StatusCell.No;
 
 			SetCell();
 
@@ -69,18 +70,22 @@ namespace life
 
 		public void SetCell(StatusCell cl = StatusCell.No)
 		{
-			Status = cl;
-			gen = true;
 			ischange = false;
 			active = false;
+			if (Status != cl)
+			{
+				isNeedRedraw = true;
+				field.listCellToDraw.Add(this);
+				Status = cl;
+			}
 		}
 
-		public void SetNo()
+		public void SetCellNo()
 		{
 			SetCell(StatusCell.No);
 		}
 
-		public void SetYes()
+		public void SetCellYes()
 		{
 			SetCell(StatusCell.Yes);
 		}
@@ -90,12 +95,12 @@ namespace life
 		{
 			if (Status == StatusCell.Yes)
 			{
-				g.FillRectangle(field.brushCellYes, GetRectangle());
+				g.FillEllipse(field.brushCellYes, GetRectangle());
 			}
 			else
 			if (Status == StatusCell.No)
 			{
-				g.FillRectangle(field.brushCellNo, GetRectangle());
+				g.FillEllipse(field.brushCellNo, GetRectangle());
 			}
 		}
 
@@ -114,23 +119,12 @@ namespace life
 		// если рядом больше двух живых ячеек первого поколения, отмечает себя живой, проверяем соседние
 		public void Calc(CellEvent ce)
 		{
-
 			switch (ce.cmd)
 			{
 				case Calccmd.set_status:
 
-					if (ischange)
-					{
-						if (Status == StatusCell.No)
-						{
-							Status = StatusCell.Yes;                          // клетка появится
-							field.IsLiveCount(Location.X, Location.Y, IsLive());  // добавляем окружающие в список события
-						}
-						else
-							Status = StatusCell.No;                          // клетка исчезнет
+					CellSetStatus();
 
-						ischange = false;
-					}
 					break;
 
 				case Calccmd.del_calc_func:
@@ -140,27 +134,8 @@ namespace life
 
 				case Calccmd.calc_cell:
 
-					int countcells = field.IsLiveCount(Location.X, Location.Y, IsLive());
+					CellCalcNextStep();
 
-					if (countcells == 3)
-					{
-						if (Status == StatusCell.No)         // клетки нет
-							ischange = true;    // клетка рождается
-					}
-					else if (countcells != 2)
-					{
-
-						if (Status == StatusCell.Yes)         // клетка есть
-						{
-							ischange = true;    // клетка исчезает 
-						}
-						else
-						if (countcells == 0)
-						{ // клетки нет и вокруг нет живых - удаляем из списка события
-							field.ListCells -= Calc;
-							active = false;
-						}
-					}
 					break;
 
 				case Calccmd.draw:
@@ -171,53 +146,51 @@ namespace life
 					}
 					break;
 			}
-/*
+		}
 
-			if (ce.cmd == Calccmd.set_status)
+		private void CellSetStatus()
+		{
+			if (ischange)
 			{
-				if (ischange)
+				if (Status == StatusCell.No)
 				{
-					if (Status == StatusCell.No)
-					{
-						Status = StatusCell.Yes;                          // клетка появится
-						field.IsLiveCount(Location.X, Location.Y, IsLive());  // добавляем окружающие в список события
-					}
-					else
-						Status = StatusCell.No;                          // клетка исчезнет
-
-					Draw(ce.G);
-					ischange = false;
+					Status = StatusCell.Yes;                            // клетка появится
+					field.IsLiveCount(Location.X, Location.Y, IsLive());// добавляем окружающие в список события
 				}
-				return;
-			}
-			else if (ce.cmd == Calccmd.del_calc_func)
-			{
-				field.ListCells -= Calc;
-				return;
-			}
+				else
+				{
+					Status = StatusCell.No;                             // клетка исчезнет
+				}
 
+				field.listCellToDraw.Add(this);
 
+				ischange = false;
+			}
+		}
+
+		private void CellCalcNextStep()
+		{
 			int countcells = field.IsLiveCount(Location.X, Location.Y, IsLive());
 
 			if (countcells == 3)
 			{
-				if (Status == StatusCell.No)         // клетки нет
-					ischange = true;    // клетка рождается
+				if (Status == StatusCell.No)        // клетки нет
+					ischange = true;                // клетка рождается
 			}
 			else if (countcells != 2)
 			{
 
-				if (Status == StatusCell.Yes)         // клетка есть
+				if (Status == StatusCell.Yes)       // клетка есть
 				{
-					ischange = true;    // клетка исчезает 
+					ischange = true;                // клетка исчезает 
 				}
 				else
 				if (countcells == 0)
-				{ // клетки нет и вокруг нет живых - удаляем из списка события
+				{                                   // клетки нет и вокруг нет живых - удаляем из списка события
 					field.ListCells -= Calc;
 					active = false;
 				}
-			} */
+			}
 		}
 	}
 }
