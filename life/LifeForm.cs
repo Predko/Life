@@ -14,8 +14,8 @@ namespace life
 
         private Field field;            // игровое поле
 
-        private int fieldX = 100;        // Размер поля 
-        private int fieldY = 80;        // в ячейках
+        private int fieldX = 80;        // Размер поля 
+        private int fieldY = 60;        // в ячейках
 
         private Timer timer;            // 
 
@@ -40,6 +40,7 @@ namespace life
             ResizeRedraw = true;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
+            DoubleBuffered = true;
         }
 
 
@@ -63,19 +64,20 @@ namespace life
                                 Height = ClientSize.Height / fieldY 
                             };
 
-            field.brushCellYes = Brushes.AliceBlue;
+            field.brushCellYes = Brushes.DarkGreen;
             field.brushCellNo = Brushes.LightGray;
 
             field.EnterCells();
             field.FieldInit();
+            field.DrawAll();
 
             timer = new Timer
             {
-                Interval = 300
+                Interval = 100
             };
             
             timer.Tick += Timer_Tick;
-            //timer.Start();
+            timer.Start();
 
             KeyUp += LifeForm_KeyUp;
 
@@ -86,8 +88,19 @@ namespace life
         {
             if(e.KeyCode == Keys.Space)
             {
-                field.CalcNextStep();
-                Invalidate();
+                if (timer.Enabled)
+                {
+                    timer.Enabled = false;
+                }
+                else
+                {
+                    timer.Enabled = true;
+                }
+            }
+            else
+            if(e.KeyCode == Keys.Escape)
+            {
+                this.Close();
             }
         }
 
@@ -100,8 +113,8 @@ namespace life
         protected override void OnPaint(PaintEventArgs e)
         {
             //base.OnPaint(e);
-
-            field.Draw(e.Graphics);
+            
+            field.DrawAll(e.Graphics);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace life
 
 		public CellArray fld;
 
-		public readonly List<Cell> listCellToDraw;
+		public readonly List<FieldLocation> listCellLocationToDraw;
 
 		public event CalcCell ListCells;
 
@@ -57,15 +57,29 @@ namespace life
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
 			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
-			listCellToDraw = new List<Cell>();
+			
+
+			listCellLocationToDraw = new List<FieldLocation>();
 		}
 
 		public void CalcNextStep()
 		{
 			if (ListCells != null)
 			{
-				ListCells?.Invoke(new CellEvent(Calccmd.calc_cell));	// рассчитываем состояние клеток для следующего шага
-				ListCells?.Invoke(new CellEvent(Calccmd.set_status));	// фиксируем рассчитанные изменения
+				ListCells?.Invoke(new CellEvent(Calccmd.analysis_nextstep));    // рассчитываем состояние клеток для следующего шага
+				ListCells?.Invoke(new CellEvent(Calccmd.apply_changes));		// фиксируем рассчитанные изменения
+				ListCells?.Invoke(new CellEvent(Calccmd.delete_not_active));    // удаляем неактивные и добавляем близлежащие
+			}
+		}
+
+		public void DrawAll()
+		{
+			for (int x = 0; x != width; x++)
+			{
+				for (int y = 0; y != height; y++)
+				{
+					listCellLocationToDraw.Add(fld[x, y].Location);
+				}
 			}
 		}
 
@@ -82,12 +96,12 @@ namespace life
 
 		public void Draw(Graphics g)
 		{
-			foreach (var cl in listCellToDraw)
+			foreach (var cl in listCellLocationToDraw)
 			{
-				cl.Draw(g);
+				fld[cl.X, cl.Y].Draw(g);
 			}
 
-			listCellToDraw.Clear();
+			listCellLocationToDraw.Clear();
 		}
 
 		// проверяем, нужно ли добавить ячейку в список событий.
@@ -96,7 +110,8 @@ namespace life
 		{
 			foreach (FieldLocation i in Dxy)
 			{
-				if (fld[x + i.X, y + i.Y].IsLive())
+				Cell currentCell = fld[x + i.X, y + i.Y];
+				if (!currentCell.isStaticCell && currentCell.IsLive())
 				{
 					return true;
 				}
@@ -105,31 +120,33 @@ namespace life
 			return false;
 		}
 
-		// подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
-		public int IsLiveCount(int x, int y, bool status)
+		// - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
+		// - 
+		public int NumberLiveCells(int x, int y, bool status)
 		{
 
 			int count = 0;   // счётчик живых ячеек первого поколения вокруг данной
 
-
-			foreach (FieldLocation l in Dxy)
+			foreach (FieldLocation loc in Dxy)
 			{
+				Cell currentcell = fld[x + loc.X, y + loc.Y];
 
-				if (status)                               // если вызывающая клетка есть
+				if (currentcell.isStaticCell)	// Статичная клетка(стенка)
 				{
-					if (!fld[x + l.X, y + l.X].active)
-					{  // добавляем найденную в список событий, если ещё не добавлена
-						ListCells += fld[x + l.X, y + l.Y].Calc;
-
-						fld[x + l.X, y + l.Y].active = true;
-					}
+					return 5;	// клетки рядом с ней должны погибнуть
 				}
 
-				if (fld[x + l.X, y + l.Y].IsLive())     // если найденная клетка живая - увеличиваем счётчик
+				if (status && !currentcell.active)		// если вызывающая клетка есть и выбранная клетка не активна(не в списке событий)
+				{
+						ListCells += currentcell.Calc;	// добавляем найденную в список событий
+
+						currentcell.active = true;		// клетка в списке событий
+				}
+
+				if (currentcell.IsLive())     // если найденная клетка живая - увеличиваем счётчик
 				{
 					count++;
 				}
-
 			}
 
 			return count;
@@ -137,12 +154,12 @@ namespace life
 
 		public void FieldInit()
 		{
-
 			for (int x = 0; x != width; x++)
 			{
 				for (int y = 0; y != height; y++)
 				{
-					if (fld[x, y].Status == StatusCell.Yes || IsAddlist(x, y))
+					if (!fld[x, y].isStaticCell 
+						&& (fld[x, y].Status == StatusCell.Yes || IsAddlist(x, y)))
 					{
 						ListCells += fld[x, y].Calc;
 						fld[x, y].active = true;
@@ -151,28 +168,121 @@ namespace life
 			}
 		}
 
-		// Заполнение поля клетками случайным образом
-		public void EnterCells()
+		public void GospersGliderGun(int x0, int y0)
 		{
-			Random rnd = new Random();
+			long[] bitmap = new long[] {
+				36,
+				0b000000000000000000000000100000000000,
+				0b000000000000000000000010100000000000,
+				0b000000000000110000001100000000000011,
+				0b000000000001000100001100000000000011,
+				0b110000000010000010001100000000000000,
+				0b110000000010001011000010100000000000,
+				0b000000000010000010000000100000000000,
+				0b000000000001000100000000000000000000,
+				0b000000000000110000000000000000000000
+			};
 
-			for (int x = 0; x != width; x++)
+			PlaceLifeObject(x0, y0, bitmap);
+		}
+
+		public void DiagonalSpaceShip(int x0, int y0)
+		{
+			long[] bitmap = new long[] {
+				22,
+				0b0000000000110000000000,
+				0b0000000001001000000000,
+				0b0000000011000000000000,
+				0b0000000001011000000000,
+				0b0000000000101110000000,
+				0b0000000000110111000000,
+				0b0000000000001000011000,
+				0b0000000000001110000110,
+				0b0010000000001010000000,
+				0b0111000000001001000000,
+				0b1000110000000000000000,
+				0b1001010000000110100100,
+				0b0101101111000100011110,
+				0b0000110100011000000010,
+				0b0000110110010000000001,
+				0b0000010001000000001011,
+				0b0000000000010000000100,
+				0b0000001000001000000100,
+				0b0000001000001001000000,
+				0b0000000100011000110000,
+				0b0000000100001101000000,
+				0b0000000000000011000000
+			};
+
+			PlaceLifeObject(x0, y0, bitmap);
+		}
+
+		private void PlaceLifeObject(int x0, int y0, long[] bitmap)
+		{
+			int x1 = x0 + (int)bitmap[0] - 1;
+			int y1 = y0 + bitmap.Length - 1;
+			int i = 1;
+
+			for(int y = y0; y < y1; y++, i++)
 			{
-				for (int y = 0; y != height; y++)
-				{
+				long current = bitmap[i];
+				int x = x1;
 
-					int r = rnd.Next(300);
-					if (r > 100 && r < 200)
+				for( int j = (int)bitmap[0]; j > 0; j--, x--)
+				{
+					if((current & 1) == 0)
 					{
-						fld[x, y].SetCellYes(); // клетка есть
+						fld[x, y].SetCellNo();
 					}
 					else
 					{
-						fld[x, y].SetCellNo();  // клетки нет
+						fld[x, y].SetCellYes();
 					}
+
+					current >>= 1;
 				}
 			}
 		}
 
+
+
+		// Заполнение поля клетками случайным образом
+		public void EnterCells()
+		{
+			//Random rnd = new Random();
+
+			//for (int x = 0; x != width; x++)
+			//{
+			//	for (int y = 0; y != height; y++)
+			//	{
+
+			//		int r = rnd.Next(300);
+			//		if (r > 100 && r < 200)
+			//		{
+			//			fld[x, y].SetCellYes(); // клетка есть
+			//		}
+			//		else
+			//		{
+			//			fld[x, y].SetCellNo();  // клетки нет
+			//		}
+			//	}
+			//}
+
+			for (int x = 0; x < width; x++)
+			{
+				fld[x, 0].SetStaticCell();
+				fld[x, height - 1].SetStaticCell();
+			}
+
+			for (int y = 1; y < height - 1; y++)
+			{
+				fld[0, y].SetStaticCell();
+				fld[width - 1, y].SetStaticCell();
+			}
+
+			GospersGliderGun(5, 5);
+
+			//DiagonalSpaceShip(width - 30, height - 30);
+		}
 	}
 }

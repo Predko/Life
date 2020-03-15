@@ -9,26 +9,31 @@ namespace life
 
 	public class CellArray
 	{
-		readonly Cell[,] cells;
-		private readonly int mi;
-		private readonly int mj;
+		private Cell[,] cells;
+		protected readonly int width;
+		protected readonly int height;
 
 
 
 		public CellArray(Field fld, int x, int y)
 		{
-			cells = new Cell[x, y];
+			width = x;
+			height = y;
+
+			Init(fld);
+		}
+
+		private void Init(Field fld)
+		{
+			cells = new Cell[width, height];
 			// инициализация всех ячеек
-			for (int k = 0; k != x; k++)
+			for (int k = 0; k != width; k++)
 			{
-				for (int m = 0; m != y; m++)
+				for (int m = 0; m != height; m++)
 				{
 					cells[k, m] = new Cell(fld, k, m);
 				}
 			}
-
-			mi = x;
-			mj = y;
 		}
 
 		// индексатор
@@ -45,32 +50,32 @@ namespace life
 		}
 
 		// возвращает правильный индекс i = 0 - (mi-1)
-		int TrueIndexI(int i)
+		protected virtual int TrueIndexI(int i)
 		{
 			if (i < 0)
 			{
-				return mi + i;
+				return width + i;
 			}
 			else
-			if (i >= mi)
+			if (i >= width)
 			{
-				return i - mi;
+				return i - width;
 			}
 
 			return i;
 		}
 
 		// возвращает правильный индекс j = 0 - (mj-1)
-		int TrueIndexJ(int j)
+		protected virtual int TrueIndexJ(int j)
 		{
 			if (j < 0)
 			{
-				return mj + j;
+				return height + j;
 			}
 			else
-			if (j >= mj)
+			if (j >= height)
 			{
-				return j - mj;
+				return j - height;
 			}
 
 			return j;
