@@ -33,11 +33,11 @@ namespace life
 
 	public class Cell : IDraw
 	{
-		public StatusCell Status { get; private set; }	// символ L  или E - есть клетка или нет
+		public StatusCell Status { get; private set; }		// есть клетка или нет
+		public StatusCell NewStatus { get; private set; }	// есть клетка или нет
 		private readonly Field field;
 		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
 
-		public bool ischange;			// изменение клетки: true - должно измениться, false - нет
 		public bool active;             // активная ячейка(true)- добавлена в список событий
 		public bool isStaticCell;		// Статическая(неизменная) ячейка. В список событий не добавляется
 
@@ -68,8 +68,6 @@ namespace life
 
 		public void SetCell(StatusCell cl = StatusCell.No)
 		{
-			ischange = false;
-			active = false;
 			if (Status != cl)
 			{
 				field.listCellLocationToDraw.Add(this.Location);
@@ -80,6 +78,8 @@ namespace life
 		public void SetCellNo() => SetCell(StatusCell.No);
 
 		public void SetCellYes() => SetCell(StatusCell.Yes);
+
+		public void ChangeStatus() => Status = NewStatus;
 
 		public void SetStaticCell()
 		{
@@ -110,97 +110,46 @@ namespace life
 												Height = field.CellSize.Height - 2
 											};
 
-		// рассчитываем следующий ход ячейки(жива/нет) или меняем статус клетки если cng == true,
-		// удаляется из списка событий, если нет(false),
-		// удаляется из списка событий, если рядом нет живых ячеек первого поколения,
-		// если рядом больше двух живых ячеек, отмечает себя живой, проверяем соседние
-		public void Calc(CellEvent ce)
+		// Анализ следующего шага.
+		public void AnalysisNextStep()
 		{
-			switch (ce.cmd)
-			{
-				case Calccmd.apply_changes:
+			int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
 
-					ApplyChanges();
-
-					break;
-
-				case Calccmd.delete_not_active:
-
-					DeleteNotActive();
-					break;
-
-				case Calccmd.analysis_nextstep:
-
-					AnalysisNextStep();
-
-					break;
-
-				case Calccmd.del_calc_func:
-
-					field.ListCells -= Calc;
-					break;
-
-				case Calccmd.draw:
-
-					if (ce.G != null)
-					{
-						Draw(ce.G);
-					}
-					break;
-			}
-		}
-
-		// Применить изменения следующего шага
-		private void ApplyChanges()
-		{
-			if (ischange)
-			{
-				if (Status == StatusCell.No)
-				{
-					Status = StatusCell.Yes;                            // клетка добавляется
-				}
-				else
-				{
-					Status = StatusCell.No;                             // клетка удаляется
-				}
-
-				field.listCellLocationToDraw.Add(this.Location);
-
-				ischange = false;
-			}
-
-		}
-
-		// Анализ следующего шага
-		private void AnalysisNextStep()
-		{
-			int numberNearest = field.NumberLiveCells(Location.X, Location.Y, IsLive());
+			NewStatus = Status; // Новое состояние клетки приравниваем к старому
 
 			if (numberNearest == 3)
 			{
-				if (Status == StatusCell.No)        // клетки нет
-					ischange = true;                // клетка рождается
-			}
-			else if (numberNearest != 2)
-			{
-				if (Status == StatusCell.Yes)       // клетка есть
+				if (!IsLive())			// клетки нет
 				{
-					ischange = true;                // клетка исчезает 
+					NewStatus = StatusCell.Yes;            // клетка рождится
+
+					field.listCellLocationToDraw.Add(this.Location);	// добавляем клетки для отрисовки
+				}
+
+				field.NewListCells.Add(this);
+			}
+			else 
+			if (numberNearest == 2)
+			{
+				if (IsLive())
+				{
+					field.NewListCells.Add(this);       // клетка остаётся на следующий ход
+				}
+				else
+				{
+					active = false;                     // клетка не будет в списке активных
 				}
 			}
-		}
+			else 
+			{
+				if (IsLive())   // клетка есть
+				{
+					NewStatus = StatusCell.No;         // клетка исчезает
 
-		// Удаляем неактивные клетки и добавляем близлежащие к живым
-		private void DeleteNotActive()
-		{
+					field.listCellLocationToDraw.Add(this.Location);    // добавляем клетку для отрисовки
+				}
 
-			int numberNearest = field.NumberLiveCells(Location.X, Location.Y, IsLive());// добавляем окружающие в список события
-
-			if (numberNearest == 0 && Status == StatusCell.No)
-			{                                   // клетки нет и вокруг нет живых - удаляем из списка события
-				field.ListCells -= Calc;
-				active = false;
-				field.listCellLocationToDraw.Add(this.Location);
+				active = false;                 // клетка становится неактивной(не добавляем в список для следующего хода)
 			}
 		}
 

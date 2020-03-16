@@ -15,7 +15,7 @@ namespace life
         private Field field;            // игровое поле
 
         private int fieldX = 80;        // Размер поля 
-        private int fieldY = 60;        // в ячейках
+        private int fieldY = 50;        // в ячейках
 
         private Timer timer;            // 
 
@@ -73,9 +73,9 @@ namespace life
 
             timer = new Timer
             {
-                Interval = 100
+                Interval = 150
             };
-            
+
             timer.Tick += Timer_Tick;
             timer.Start();
 
@@ -96,6 +96,8 @@ namespace life
                 {
                     timer.Enabled = true;
                 }
+                field.CalcNextStep();
+                Invalidate();
             }
             else
             if(e.KeyCode == Keys.Escape)
@@ -113,7 +115,7 @@ namespace life
         protected override void OnPaint(PaintEventArgs e)
         {
             //base.OnPaint(e);
-            
+
             field.DrawAll(e.Graphics);
         }
     }
