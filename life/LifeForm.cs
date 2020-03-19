@@ -10,6 +10,22 @@ namespace life
 {
     public partial class LifeForm : Form
     {
+        private IContainer components = null;
+
+        private Button btnStartStop;
+        private const string name_btnStartStop = "btnStartStop";
+
+        private Button btnMakeAStep;
+        private const string name_btnMakeAStep = "btnDoStep";
+
+        private const string text_start = "Start";
+        private const string text_stop = "Stop";
+
+        Label lbCount;
+
+        private Font font;
+
+
         private int count;      // счётчик ходов
 
         private Field field;            // игровое поле
@@ -17,14 +33,47 @@ namespace life
         private int fieldX = 80;        // Размер поля 
         private int fieldY = 50;        // в ячейках
 
+        private const int x0 = 0;
+        private int y0;                 // координата Y начала игрового поля
+
         private Timer timer;            // 
 
+        public int Count
+        {
+            get
+            {
+                return count;
+            }
 
-        public LifeForm()
+            set
+            {
+                count = value;
+                lbCount.Text = $"Step: {count}";
+            }
+        }
+
+        public LifeForm():base()
         {
             InitializeComponent();
 
             InitialazeLifeForm();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && components != null)
+            {
+                components.Dispose();
+            }
+                        
+            base.Dispose(disposing);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            field.DrawAll(e.Graphics);
         }
 
         /// <summary>
@@ -33,7 +82,42 @@ namespace life
         /// </summary>
         private void InitializeComponent()
         {
-            AutoScaleMode = AutoScaleMode.Font;
+            SuspendLayout();
+
+            AutoSize = true;
+
+            btnStartStop = new Button
+            {
+                Location = new Point(2, 2),
+                Text = text_start,
+                AutoSize = true,
+                Name = name_btnStartStop,
+                TabIndex = 1
+            };
+
+            btnStartStop.Click += Btn_Click;
+
+            btnMakeAStep = new Button
+            {
+                Location = new Point(btnStartStop.Location.X + btnStartStop.Size.Width + 10, 2),
+                Text = "Make a step",
+                AutoSize = true,
+                Name = name_btnMakeAStep,
+                TabIndex = 2
+            };
+
+            btnMakeAStep.Click += Btn_Click;
+
+            lbCount = new Label()
+            {
+                Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
+                Text = "Step: ",
+                AutoSize = true,
+                Name = nameof(lbCount)
+            };
+
+            y0 = btnStartStop.Location.Y + btnStartStop.Size.Height + 2;
+            
             ClientSize = new Size(800, 450);
             Text = "Life";
             BackColor = SystemColors.Window;
@@ -41,35 +125,18 @@ namespace life
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             DoubleBuffered = true;
-        }
 
+            Controls.Add(btnStartStop);
+            Controls.Add(btnMakeAStep);
+            Controls.Add(lbCount);
 
-        private void InitialazeLifeForm()
-        {
-            count = 0;
+            AutoScaleDimensions = new SizeF(6f, 13f);
+            AutoScaleMode = AutoScaleMode.Font;
 
-            field = new Field(fieldX, fieldY);
+            // Корректируем положение lbCount по Y - по оси кнопок
+            lbCount.Location = new Point(lbCount.Location.X, btnMakeAStep.Location.Y + btnMakeAStep.Size.Height / 2 - lbCount.Size.Height / 2);
 
-            // Корректируем размер рабочей области формы кратно размерам поля
-            ClientSize = new Size()
-            {
-                Width  = (int)Math.Ceiling((decimal)ClientSize.Width / fieldX) * fieldX,    //  + (Size.Width - ClientSize.Width) 
-                Height = (int)Math.Ceiling((decimal)ClientSize.Height / fieldY) * fieldY    //  + (Size.Height - ClientSize.Height)
-            };
-
-            // размер ячейки
-            field.CellSize = new Size() 
-                            {
-                                Width  = ClientSize.Width / fieldX, 
-                                Height = ClientSize.Height / fieldY 
-                            };
-
-            field.brushCellYes = Brushes.DarkGreen;
-            field.brushCellNo = Brushes.LightGray;
-
-            field.EnterCells();
-            field.FieldInit();
-            field.DrawAll();
+            ResumeLayout(false);
 
             timer = new Timer
             {
@@ -77,46 +144,49 @@ namespace life
             };
 
             timer.Tick += Timer_Tick;
-            timer.Start();
 
             KeyUp += LifeForm_KeyUp;
-
-           
         }
 
-        private void LifeForm_KeyUp(object sender, KeyEventArgs e)
+        private void InitialazeLifeForm()
         {
-            if(e.KeyCode == Keys.Space)
+            Count = 0;
+
+            SetSizeFormAndField();
+
+            InitField();
+
+            field.DrawAll();
+        }
+
+        private void InitField()
+        {
+            field.EnterCells();
+            field.FieldInit();
+        }
+
+        // Корректируем размер рабочей области формы кратно размерам поля
+        private void SetSizeFormAndField()
+        {
+            int cellSize = Math.Min((int)Math.Ceiling((decimal)(ClientSize.Width - x0) / fieldX),
+                               (int)Math.Ceiling((decimal)(ClientSize.Height - y0) / fieldY));
+
+            ClientSize = new Size()
             {
-                if (timer.Enabled)
-                {
-                    timer.Enabled = false;
-                }
-                else
-                {
-                    timer.Enabled = true;
-                }
-                field.CalcNextStep();
-                Invalidate();
-            }
-            else
-            if(e.KeyCode == Keys.Escape)
+                Width = x0 + cellSize * fieldX,
+                Height = y0 + cellSize * fieldY
+            };
+
+            field = new Field(fieldX, fieldY)
             {
-                this.Close();
-            }
+                TopLeftCorner = new Point(x0, y0),
+
+                CellSize = new Size(cellSize, cellSize),   // размер ячейки
+
+                brushCellYes = Brushes.DarkGreen,
+                brushCellNo = Brushes.LightGray
+            };
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            field.CalcNextStep();
-            Invalidate();
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            //base.OnPaint(e);
-
-            field.DrawAll(e.Graphics);
-        }
     }
 }

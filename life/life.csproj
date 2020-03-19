@@ -53,7 +53,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BoundedCellArray.cs" />
+    <Compile Include="LifeEvents.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Cell.cs" />
     <Compile Include="CellArray.cs" />
     <Compile Include="Field.cs" />

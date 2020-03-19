@@ -32,6 +32,7 @@ namespace life
 		private readonly int height;
 
 		public Size CellSize { get; set; }
+		public Point TopLeftCorner { get; set; }
 
 		public Brush brushCellYes;
 		public Brush brushCellNo; 

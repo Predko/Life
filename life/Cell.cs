@@ -104,8 +104,8 @@ namespace life
 		// Преобразование координат поля в координаты рабочей области формы
 		private Rectangle GetRectangle() => new Rectangle()
 											{
-												X = Location.X * field.CellSize.Width + 1,
-												Y = Location.Y * field.CellSize.Height + 1,
+												X = field.TopLeftCorner.X + Location.X * field.CellSize.Width + 1,
+												Y = field.TopLeftCorner.Y + Location.Y * field.CellSize.Height + 1,
 												Width = field.CellSize.Width - 2,
 												Height = field.CellSize.Height - 2
 											};
