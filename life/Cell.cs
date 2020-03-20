@@ -39,9 +39,7 @@ namespace life
 		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
 
 		public bool active;             // активная ячейка(true)- добавлена в список событий
-		public bool isStaticCell;		// Статическая(неизменная) ячейка. В список событий не добавляется
-
-
+		public bool isStaticCell;       // Статическая(неизменная) ячейка. В список событий не добавляется
 
 		public Cell(Field fld, FieldLocation fl)
 		{
@@ -121,7 +119,7 @@ namespace life
 			{
 				if (!IsLive())			// клетки нет
 				{
-					NewStatus = StatusCell.Yes;            // клетка рождится
+					NewStatus = StatusCell.Yes;            // клетка родится
 
 					field.listCellLocationToDraw.Add(this.Location);	// добавляем клетки для отрисовки
 				}

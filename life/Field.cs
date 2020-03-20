@@ -45,7 +45,12 @@ namespace life
 		public readonly List<FieldLocation> listCellLocationToDraw;
 
 		public List<Cell> CurrentListCells;         // Список активных клеток текущего хода
-		public List<Cell> NewListCells;				// Список активных клеток следующего хода
+		public List<Cell> NewListCells;             // Список активных клеток следующего хода
+
+		public string log;  // строка содержащая информацию о изменениях в состоянии активных клеток на текущем ходе
+							// в виде: +(x,y) - клетка появилась, -(x,y) - клетка исчезла. например: +(1,1);-(10,5)
+							// <текущий шаг>:<+/->(<X>,<Y>)[;]
+
 
 
 		// Длина и ширина в ячейках игрового поля
@@ -269,23 +274,23 @@ namespace life
 		// Заполнение поля клетками случайным образом
 		public void EnterCells()
 		{
-			Random rnd = new Random();
+			//Random rnd = new Random();
 
-			for (int x = 0; x != width; x++)
-			{
-				for (int y = 0; y != height; y++)
-				{
-					int r = rnd.Next(300);
-					if (r > 100 && r < 200)
-					{
-						fld[x, y].SetCellYes(); // клетка есть
-					}
-					else
-					{
-						fld[x, y].SetCellNo();  // клетки нет
-					}
-				}
-			}
+			//for (int x = 0; x != width; x++)
+			//{
+			//	for (int y = 0; y != height; y++)
+			//	{
+			//		int r = rnd.Next(300);
+			//		if (r > 100 && r < 200)
+			//		{
+			//			fld[x, y].SetCellYes(); // клетка есть
+			//		}
+			//		else
+			//		{
+			//			fld[x, y].SetCellNo();  // клетки нет
+			//		}
+			//	}
+			//}
 
 			for (int x = 0; x < width; x++)
 			{
@@ -299,7 +304,7 @@ namespace life
 				fld[width - 1, y].SetStaticCell();
 			}
 
-			//GospersGliderGun(5, 5);
+			GospersGliderGun(5, 5);
 
 			//DiagonalSpaceShip(width - 30, height - 30);
 		}
