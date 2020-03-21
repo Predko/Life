@@ -5,16 +5,36 @@ using System.Linq;
 
 namespace life
 {
-	public struct FieldLocation
+	public struct FieldLocation: IComparable<FieldLocation>, IEquatable<FieldLocation>
 	{
-		public int X;
-		public int Y;
+		public short X;
+		public short Y;
 
-		public FieldLocation(int x, int y)
+		public FieldLocation(short x, short y)
 		{
 			X = x;
 			Y = y;
 		}
+
+		public int CompareTo(FieldLocation fl) => GetHashCode() - fl.GetHashCode();
+
+		public override bool Equals(object obj) => (obj is FieldLocation fl && Equals(fl));
+
+		public bool Equals(FieldLocation fl) => (X == fl.X && Y == fl.Y);
+
+		public override int GetHashCode() => ((Y & 0x7FFF) << 15) | (X & 0x7FFF);
+
+		public static bool operator ==(FieldLocation left, FieldLocation right) => left.Equals(right);
+
+		public static bool operator !=(FieldLocation left, FieldLocation right) => !(left == right);
+
+		public static bool operator <(FieldLocation left, FieldLocation right)	=> left.CompareTo(right) < 0;
+
+		public static bool operator <=(FieldLocation left, FieldLocation right) => left.CompareTo(right) <= 0;
+
+		public static bool operator >(FieldLocation left, FieldLocation right)	=> left.CompareTo(right) > 0;
+
+		public static bool operator >=(FieldLocation left, FieldLocation right) => left.CompareTo(right) >= 0;
 
 		//public static implicit operator FieldLocation(Point p)
 		//{

@@ -27,9 +27,9 @@ namespace life
 		{
 			cells = new Cell[width, height];
 			// инициализация всех ячеек
-			for (int k = 0; k != width; k++)
+			for (short k = 0; k != width; k++)
 			{
-				for (int m = 0; m != height; m++)
+				for (short m = 0; m != height; m++)
 				{
 					cells[k, m] = new Cell(fld, k, m);
 				}

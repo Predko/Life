@@ -140,7 +140,7 @@ namespace life
 
             timer = new Timer
             {
-                Interval = 150
+                Interval = 50
             };
 
             timer.Tick += Timer_Tick;

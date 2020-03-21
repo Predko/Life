@@ -31,7 +31,7 @@ namespace life
 	}
 
 
-	public class Cell : IDraw
+	public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
 	{
 		public StatusCell Status { get; private set; }		// есть клетка или нет
 		public StatusCell NewStatus { get; private set; }	// есть клетка или нет
@@ -52,7 +52,7 @@ namespace life
 			Location = fl;
 		}
 
-		public Cell(Field fld, int x, int y):this(fld, new FieldLocation(x,y))
+		public Cell(Field fld, short x, short y):this(fld, new FieldLocation(x,y))
 		{
 		}
 
@@ -151,6 +151,20 @@ namespace life
 			}
 		}
 
+		public int CompareTo(Cell other) => Location.CompareTo(other.Location);
+
+		public override int GetHashCode() => Location.GetHashCode();
+
+		public bool Equals(Cell other)
+		{
+			return Location.Equals(other.Location) &&
+				   Status == other.Status &&
+				   NewStatus == other.NewStatus &&
+				   active == other.active &&
+				   isStaticCell == other.isStaticCell;
+		}
+
+		public override bool Equals(object obj) => obj is Cell other && Equals(other);
 	}
 }
 

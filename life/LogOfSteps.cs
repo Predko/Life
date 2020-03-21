@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace life
 {
-    class LogOfSteps
+    public class LogOfSteps
     {
         private string fileName;
 
