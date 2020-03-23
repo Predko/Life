@@ -55,15 +55,16 @@ namespace life
 		public Brush brushCellYes;
 		public Brush brushCellNo;
 
-		private BufferedGraphicsContext context;
-		private BufferedGraphics graphics;
+		public Bitmap bitmap;
+		public Bitmap bitmapCellYesNo;
+
+		public Rectangle rectCellYes;
+		public Rectangle rectCellNo;
 
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
 
 		public BinaryTreeCells field;
-
-		public readonly List<Cell> listCellToDraw;
 
 		public List<Cell> CurrentListCells;         // Список активных клеток текущего хода
 		public List<Cell> NewListCells;             // Список активных клеток следующего хода
@@ -87,49 +88,79 @@ namespace life
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
 			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
-			listCellToDraw = new List<Cell>();
-
 			CurrentListCells = new List<Cell>();
 		}
 
-		public void DrawAll()
+		public void InitBitmap()
 		{
-			foreach(var cell in field)
-			{
-				listCellToDraw.Add(cell);
-			}
+			bitmap = new Bitmap(rectangle.Width, rectangle.Height);
+
+			bitmapCellYesNo = new Bitmap(CellSize.Width * 2, CellSize.Height);
+
+			DrawFieldToBitmap();
 		}
 
-		public void DrawAll(Graphics g)
+		private void DrawFieldToBitmap()
 		{
+			Graphics bitmapGraphics = Graphics.FromImage(bitmapCellYesNo);
+
+			rectCellYes = new Rectangle(0, 0, CellSize.Width, CellSize.Height);
+			rectCellNo = new Rectangle(CellSize.Width, 0, CellSize.Width, CellSize.Height);
+
+			bitmapGraphics.FillRectangle(brushCellYes, rectCellYes);
+
+			bitmapGraphics.FillRectangle(brushCellNo, rectCellNo);
+
+			bitmapGraphics.Dispose();
+
+			bitmapGraphics = Graphics.FromImage(bitmap);
+
 			for (int y = 0; y < height; y++)
 			{
 				for (int x = 0; x < width; x++)
 				{
-					g.FillRectangle(brushCellNo, new Rectangle()
-					{
-						X = rectangle.X + x * CellSize.Width + 1,
-						Y = rectangle.Y + y * CellSize.Height + 1,
-						Width = CellSize.Width - 2,
-						Height = CellSize.Height - 2
-					});
+					Rectangle rectCurrentCell = new Rectangle()
+													{
+														X = x * CellSize.Width + 1,
+														Y = y * CellSize.Height + 1,
+														Width = CellSize.Width - 2,
+														Height = CellSize.Height - 2
+													};
+
+
+					bitmapGraphics.DrawImage(bitmapCellYesNo, rectCurrentCell, rectCellNo, GraphicsUnit.Pixel);
 				}
 			}
 
-			foreach (var cell in field)
+			// Временно меняем прямоугольник отрисовки игрового поля на прямоугольник bitmap
+			Rectangle frect = rectangle;
+
+			rectangle = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
+
+			foreach(var cell in field)
 			{
-				cell.Draw(g);
+				if(cell.isStaticCell)
+				{
+					cell.Draw(bitmapGraphics);
+				}
 			}
+
+			// Восстанавливаем
+			rectangle = frect;
+
+			bitmapGraphics.Dispose();
 		}
 
 		public void Draw(Graphics g)
 		{
-			foreach (var cell in listCellToDraw)
+			Rectangle rectsrc = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
+			
+			g.DrawImage(bitmap, rectangle, rectsrc, GraphicsUnit.Pixel);
+			
+			foreach (var cell in field)
 			{
 				cell.Draw(g);
 			}
-
-			listCellToDraw.Clear();
 		}
 
 		public void AddCell(Cell cell) => field.Add(cell);
@@ -217,11 +248,6 @@ namespace life
 				Console.WriteLine($"{cell.Location.X},{cell.Location.Y}");
 			}
 			Console.WriteLine($"{NewListCells.Count}\t{CurrentListCells.Count}\t{field.Count}\n");
-		}
-
-		private void DeleteNoActiveCells()
-		{
-
 		}
 
 		public void FieldInit()

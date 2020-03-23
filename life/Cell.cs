@@ -68,7 +68,6 @@ namespace life
 		{
 			if (Status != cl)
 			{
-				field.listCellToDraw.Add(this);
 				Status = cl;
 			}
 		}
@@ -89,8 +88,6 @@ namespace life
 				if (!IsLive())			// клетки нет
 				{
 					NewStatus = StatusCell.Yes;            // клетка родится
-
-					field.listCellToDraw.Add(this);	// добавляем клетки для отрисовки
 				}
 
 				field.NewListCells.Add(this);
@@ -112,8 +109,6 @@ namespace life
 				if (IsLive())   // клетка есть
 				{
 					NewStatus = StatusCell.No;         // клетка исчезает
-
-					field.listCellToDraw.Add(this);    // добавляем клетку для отрисовки
 				}
 
 				active = false; // make inactive
@@ -149,12 +144,12 @@ namespace life
 		{
 			if (Status == StatusCell.Yes)
 			{
-				g.FillRectangle(field.brushCellYes, GetRectangle());
+				g.DrawImage(field.bitmapCellYesNo, GetRectangle(), field.rectCellYes, GraphicsUnit.Pixel);
 			}
 			else
 			if (Status == StatusCell.No)
 			{
-				g.FillRectangle(field.brushCellNo, GetRectangle());
+				g.DrawImage(field.bitmapCellYesNo, GetRectangle(), field.rectCellNo, GraphicsUnit.Pixel);
 			}
 		}
 

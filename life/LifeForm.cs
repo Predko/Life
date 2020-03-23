@@ -73,7 +73,7 @@ namespace life
         {
             base.OnPaint(e);
 
-            field.DrawAll(e.Graphics);
+            field.Draw(e.Graphics);
         }
 
         /// <summary>
@@ -152,16 +152,17 @@ namespace life
         {
             Count = 0;
 
-            SetSizeFormAndField();
-
             InitField();
-
-            field.DrawAll();
         }
 
         private void InitField()
         {
+            field = new Field(fieldX, fieldY);
+
             field.EnterCells();
+
+            SetSizeFormAndField();
+
             field.FieldInit();
         }
 
@@ -179,17 +180,14 @@ namespace life
                 Height = y0 + fieldRectangle.Height
             };
 
-            field = new Field(fieldX, fieldY)
-            {
-                rectangle = fieldRectangle,
+            field.rectangle = fieldRectangle;
 
-                CellSize = new Size(cellSize, cellSize),   // размер ячейки
+            field.CellSize = new Size(cellSize, cellSize);   // размер ячейки
 
-                brushCellYes = Brushes.DarkGreen,
-                brushCellNo = Brushes.LightGray
-            };
+            field.brushCellYes = Brushes.DarkGreen;
+            field.brushCellNo = Brushes.LightGray;
 
-            //field.InitGraphicsBuffer(C)
+            field.InitBitmap();
         }
 
     }
