@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,29 +7,29 @@ using System.Text;
 namespace life
 {
     public enum SideNode { Left, Right, Parent }
-    
-    public class BinaryTreeCellsNode: IComparable<Cell>, IEquatable<BinaryTreeCellsNode>
+
+    public class BinaryTreeCellsNode : IComparable<Cell>, IEquatable<BinaryTreeCellsNode>
     {
         public BinaryTreeCellsNode left;
         public BinaryTreeCellsNode right;
         public BinaryTreeCellsNode parent;
 
-        private readonly Cell cell;
+        public readonly Cell cell;
 
         public BinaryTreeCellsNode(Cell cell)
         {
             this.cell = cell;
         }
 
-        public SideNode Side() => (this == parent.left)  ? SideNode.Left : 
-                                  (this == parent.right) ? SideNode.Right : 
+        public SideNode Side() => (this == (object)parent.left) ? SideNode.Left :
+                                  (this == (object)parent.right) ? SideNode.Right :
                                                            SideNode.Parent;
 
         public void SetParentLeftOrRight(BinaryTreeCellsNode node)
         {
             switch (Side())
             {
-                case SideNode.Left: 
+                case SideNode.Left:
                     parent.left = node;
                     break;
 
@@ -42,9 +43,15 @@ namespace life
 
         public int CompareTo(BinaryTreeCellsNode other) => cell.CompareTo(other.cell);
 
-        public static bool operator ==(BinaryTreeCellsNode leftOp, BinaryTreeCellsNode rightOp) => leftOp.cell.Location == rightOp.cell.Location;
+        public static bool operator ==(BinaryTreeCellsNode leftOp, BinaryTreeCellsNode rightOp)
+        {
+            return leftOp.cell.Location == rightOp.cell.Location;
+        }
 
-        public static bool operator ==(BinaryTreeCellsNode leftOp, Cell cell) => leftOp.cell.Location == cell.Location;
+        public static bool operator ==(BinaryTreeCellsNode leftOp, Cell cell)
+        {
+            return leftOp.cell.Location == cell.Location;
+        }
 
         public static bool operator !=(BinaryTreeCellsNode leftOp, BinaryTreeCellsNode rightOp) => leftOp.cell.Location != rightOp.cell.Location;
 
@@ -69,39 +76,125 @@ namespace life
         }
     }
 
-    public class BinaryTreeCells
+    public class BinaryTreeCellsEnumerator : IEnumerator<Cell>
+    {
+        BinaryTreeCellsNode current;
+        readonly BinaryTreeCells cells;
+
+        Stack<BinaryTreeCellsNode> RightNode;
+
+        
+        
+        public BinaryTreeCellsEnumerator(BinaryTreeCells cells)
+        {
+            this.cells = cells;
+
+            Reset();
+
+            RightNode = new Stack<BinaryTreeCellsNode>();
+        }
+
+        public Cell Current => current.cell;
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                current = null;
+                RightNode = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        public bool MoveNext()
+        {
+            BinaryTreeCellsNode oldCurrentRight = current.right;
+
+            current = current.left;
+            
+            if (current == (Object)null)
+            {
+                if (oldCurrentRight != (Object)null)
+                {
+                    current = oldCurrentRight;
+                }
+                else
+                {
+                    if (RightNode.Count == 0)
+                    {
+                        return false;
+                    }
+                        
+                    current = RightNode.Pop(); // В стеке ещё есть праый узел, Переходим на него
+                }
+            }
+            else
+            if (oldCurrentRight != (Object)null)
+            {
+                RightNode.Push(oldCurrentRight);
+            }
+
+            return true;
+        }
+
+        public void Reset()
+        {
+            current = new BinaryTreeCellsNode(null)
+            {
+                left = cells.First(),
+                right = null,
+                parent = null
+            };
+        }
+    }
+
+    public class BinaryTreeCells : IEnumerable<Cell>
     {
         BinaryTreeCellsNode rootNode;
+        private int count;
+
+        public int Count { get => count; set => count = value; }
 
         public BinaryTreeCells()
         {
             rootNode = null;
+            count = 0;
         }
 
+        public BinaryTreeCellsNode First() => rootNode;
 
+        public void Add(Cell cell) => Add(new BinaryTreeCellsNode(cell));
 
         public void Add(BinaryTreeCellsNode node, BinaryTreeCellsNode current = null)
         {
-            if ( rootNode == (BinaryTreeCellsNode)null)
+            if (rootNode == (Object)null)
             {
                 rootNode = node;
                 node.parent = null;
+                count++;
                 return;
             }
 
-            if (current == (BinaryTreeCellsNode)null)
+            if (current == (Object)null)
             {
                 current = rootNode;
             }
-            
-            while (node == current)  // эта ячейка уже есть
-            { 
+
+            while (node != current)  // если эта ячейка уже есть - выходим
+            {
                 if (node < current)
                 {
-                    if (current.left == (BinaryTreeCellsNode)null)
+                    if (current.left == (Object)null)
                     {
                         node.parent = current;
                         current.left = node;
+                        count++;
                         return;
                     }
 
@@ -109,10 +202,11 @@ namespace life
                     continue;
                 }
 
-                if (current.right == (BinaryTreeCellsNode)null)
+                if (current.right == (Object)null)
                 {
                     node.parent = current;
                     current.right = node;
+                    count++;
                     return;
                 }
 
@@ -122,62 +216,65 @@ namespace life
 
         public void Remove(Cell cell)
         {
-            BinaryTreeCellsNode current = rootNode;
             BinaryTreeCellsNode node = Find(cell);
 
-            if (node != (BinaryTreeCellsNode)null)
+            if (node != (Object)null)
             {
-                if (node.parent == (BinaryTreeCellsNode)null) // Это корневой узел
+                if (node.parent == (Object)null) // Это корневой узел
                 {
-                    if (node.right == (BinaryTreeCellsNode)null)
+                    if (node.right == (Object)null)
                     {
-                        if (node.left == (BinaryTreeCellsNode)null)  // нет потомков
+                        if (node.left == (Object)null)  // нет потомков
                         {
                             rootNode = null;
+                            count--;
                             return;
                         }
                         else
                         {
                             node.left.parent = null;
                             rootNode = node.left;
+                            count--;
                             return;
                         }
                     }
-                    else 
+                    else
                     {
                         node.right.parent = null;
                         rootNode = node.right;
+                        count--;
 
-                        if (node.left != (BinaryTreeCellsNode)null)
+                        if (node.left != (Object)null)
                         {
-                            Add(node.left, node.right);
+                            count--;                    // узел перемещается, компенсируем увеличение счётчика в Add
+                            Add(node.left);
                         }
 
                         return;
                     }
                 }
 
-                if (node.right == (BinaryTreeCellsNode)null)
+                if (node.right == (Object)null)
                 {
-                    if (node.left == (BinaryTreeCellsNode)null)  // нет потомков
+                    node.SetParentLeftOrRight(node.left);
+                    if (node.left != (object)null)
                     {
-                        node.SetParentLeftOrRight(null);
-                    }
-                    else
-                    {
-                        node.SetParentLeftOrRight(node.left);
+                        node.left.parent = node.parent;
                     }
                 }
                 else
                 {
                     node.SetParentLeftOrRight(node.right);
+                    node.right.parent = node.parent;
 
-                    if (node.left != (BinaryTreeCellsNode)null)
+                    if (node.left != (Object)null)
                     {
+                        count--;                    // узел перемещается, компенсируем увеличение счётчика в Add
                         Add(node.left, node.right);
                     }
                 }
                 
+                count--;
                 node.parent = null;
             }
         }
@@ -185,10 +282,15 @@ namespace life
         private BinaryTreeCellsNode Find(Cell cell)
         {
             BinaryTreeCellsNode current = rootNode;
-        
-            while (current != cell || current != (BinaryTreeCellsNode)null)
+
+            while (current != (object)null)
             {
-                if (current > cell)
+                if (current == cell)    // ячейка найдена
+                {
+                    return current;
+                }
+
+                if (current < cell) // cell > current.cell
                 {
                     current = current.right;
                 }
@@ -199,6 +301,36 @@ namespace life
             }
 
             return current;
+        }
+
+        public Cell this[int x, int y]
+        {
+            get
+            {
+                return Find(new Cell(null, x, y))?.cell;
+            }
+
+            set
+            {
+                BinaryTreeCellsNode node = Find(new Cell(null, x, y));
+
+                if (node != (Object)null)
+                {
+                    return; // такая ячейка уже есть
+                }
+
+                Add(new BinaryTreeCellsNode(value));
+            }
+        }
+
+        public IEnumerator<Cell> GetEnumerator()
+        {
+            return new BinaryTreeCellsEnumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

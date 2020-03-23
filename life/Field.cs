@@ -10,17 +10,17 @@ namespace life
 		public short X;
 		public short Y;
 
-		public FieldLocation(short x, short y)
+		public FieldLocation(int x, int y)
 		{
-			X = x;
-			Y = y;
+			X = (short)(x & 0x7FFF);
+			Y = (short)(y & 0x7FFF);
 		}
 
 		public int CompareTo(FieldLocation fl) => GetHashCode() - fl.GetHashCode();
 
 		public override bool Equals(object obj) => (obj is FieldLocation fl && Equals(fl));
 
-		public bool Equals(FieldLocation fl) => (X == fl.X && Y == fl.Y);
+		public bool Equals(FieldLocation fl) => (GetHashCode() == fl.GetHashCode());
 
 		public override int GetHashCode() => ((Y & 0x7FFF) << 15) | (X & 0x7FFF);
 
@@ -43,26 +43,27 @@ namespace life
 
 	}
 
-	public delegate void CalcCell(CellEvent ce);
-
 	// поле, верхняя часть соединена с нижней, левая с правой
 	public class Field
 	{
-		private readonly int width;
-		private readonly int height;
+		private readonly short width;
+		private readonly short height;
 
 		public Size CellSize { get; set; }
-		public Point TopLeftCorner { get; set; }
+		public Rectangle rectangle { get; set; }
 
 		public Brush brushCellYes;
-		public Brush brushCellNo; 
+		public Brush brushCellNo;
+
+		private BufferedGraphicsContext context;
+		private BufferedGraphics graphics;
 
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
 
-		public CellArray fld;
+		public BinaryTreeCells field;
 
-		public readonly List<FieldLocation> listCellLocationToDraw;
+		public readonly List<Cell> listCellToDraw;
 
 		public List<Cell> CurrentListCells;         // Список активных клеток текущего хода
 		public List<Cell> NewListCells;             // Список активных клеток следующего хода
@@ -73,79 +74,109 @@ namespace life
 
 
 
-		// Длина и ширина в ячейках игрового поля
+		// Длина и ширина в ячейках игрового поля. 
+		// Максимальные размер ограничен максимальным положительным значением типа short
 		public Field(int width, int height)
 		{
-			this.height = height;
-			this.width = width;
-			fld = new CellArray(this, width, height);
+			this.height = (short)(height & 0x7fff);
+			this.width = (short)(width & 0x7fff);
+
+			field = new BinaryTreeCells();
 
 			Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
 			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
-			listCellLocationToDraw = new List<FieldLocation>();
+			listCellToDraw = new List<Cell>();
 
 			CurrentListCells = new List<Cell>();
 		}
 
 		public void DrawAll()
 		{
-			for (int x = 0; x != width; x++)
+			foreach(var cell in field)
 			{
-				for (int y = 0; y != height; y++)
-				{
-					listCellLocationToDraw.Add(fld[x, y].Location);
-				}
+				listCellToDraw.Add(cell);
 			}
 		}
 
 		public void DrawAll(Graphics g)
 		{
-			for (int x = 0; x != width; x++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int y = 0; y != height; y++)
+				for (int x = 0; x < width; x++)
 				{
-					fld[x, y].Draw(g);
+					g.FillRectangle(brushCellNo, new Rectangle()
+					{
+						X = rectangle.X + x * CellSize.Width + 1,
+						Y = rectangle.Y + y * CellSize.Height + 1,
+						Width = CellSize.Width - 2,
+						Height = CellSize.Height - 2
+					});
 				}
+			}
+
+			foreach (var cell in field)
+			{
+				cell.Draw(g);
 			}
 		}
 
 		public void Draw(Graphics g)
 		{
-			foreach (var cl in listCellLocationToDraw)
+			foreach (var cell in listCellToDraw)
 			{
-				fld[cl.X, cl.Y].Draw(g);
+				cell.Draw(g);
 			}
 
-			listCellLocationToDraw.Clear();
+			listCellToDraw.Clear();
+		}
+
+		public void AddCell(Cell cell) => field.Add(cell);
+
+		public void RemoveCell(Cell cell)
+		{
+			if (!cell.isStaticCell)	// не удаляем из списка статичные клетки
+			{
+				field.Remove(cell);
+			}
 		}
 
 		// Добавляем близлежащие клетки к активной в список активных клеток
-		public void AddNearestCells(int x, int y)
+		public void AddNearestCells(short x, short y)
 		{
 			foreach (FieldLocation i in Dxy)
 			{
-				Cell currentCell = fld[x + i.X, y + i.Y];
-				
-				if (!currentCell.isStaticCell && !currentCell.active)
+				Cell currentCell = field[x + i.X, y + i.Y];
+
+				if (currentCell == null)
 				{
-					currentCell.active = true;
+					currentCell = new Cell(this, new FieldLocation(x + i.X, y + i.Y)) { active = true };
+					
+					field[x + i.X, y + i.Y] = currentCell;
 
 					CurrentListCells.Add(currentCell);
+				}
+				else 
+				if (currentCell.isStaticCell)
+				{
+					continue;
 				}
 			}
 		}
 
 		// - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
-		public int NumberLiveCells(int x, int y)
+		public int NumberLiveCells(short x, short y)
 		{
 
-			int count = 0;   // счётчик живых ячеек первого поколения вокруг данной
+			int count = 0;   // счётчик живых ячеек вокруг данной
 
 			foreach (FieldLocation loc in Dxy)
 			{
-				Cell currentcell = fld[x + loc.X, y + loc.Y];
+				Cell currentcell = field[x + loc.X, y + loc.Y];
+
+				if (currentcell == null)
+					continue;					// клетки нет
 
 				if (currentcell.isStaticCell)	// Статичная клетка(стенка)
 				{
@@ -183,24 +214,26 @@ namespace life
 			foreach (Cell cell in NewListCells)
 			{
 				AddNearestCells(cell.Location.X, cell.Location.Y);
+				Console.WriteLine($"{cell.Location.X},{cell.Location.Y}");
 			}
+			Console.WriteLine($"{NewListCells.Count}\t{CurrentListCells.Count}\t{field.Count}\n");
+		}
+
+		private void DeleteNoActiveCells()
+		{
+
 		}
 
 		public void FieldInit()
 		{
 			NewListCells = new List<Cell>();
 
-			for (int x = 0; x != width; x++)
+			foreach(Cell currentCell in field)
 			{
-				for (int y = 0; y != height; y++)
+				if (!currentCell.isStaticCell && currentCell.IsLive())
 				{
-					Cell currentCell = fld[x, y];
-
-					if (!currentCell.isStaticCell && currentCell.IsLive())
-					{
-						currentCell.active = true;
-						NewListCells.Add(currentCell);
-					}
+					currentCell.active = true;
+					NewListCells.Add(currentCell);
 				}
 			}
 
@@ -213,7 +246,7 @@ namespace life
 			}
 		}
 
-		public void GospersGliderGun(int x0, int y0)
+		public void GospersGliderGun(short x0, short y0)
 		{
 			long[] bitmap = new long[] {
 				36,
@@ -273,58 +306,50 @@ namespace life
 				long current = bitmap[i];
 				int x = x1;
 
-				for( int j = (int)bitmap[0]; j > 0; j--, x--)
+				for(int j = (int)bitmap[0]; j > 0; j--, x--)
 				{
-					if((current & 1) == 0)
+					if((current & 1) != 0)
 					{
-						fld[x, y].SetCellNo();
-					}
-					else
-					{
-						fld[x, y].SetCellYes();
-					}
+						Cell cell = new Cell(this, x, y) { active = true, Status = StatusCell.Yes };
 
+						field[x, y] = cell;
+					}
+					
 					current >>= 1;
 				}
 			}
 		}
 
-
-
 		// Заполнение поля клетками случайным образом
 		public void EnterCells()
 		{
-			//Random rnd = new Random();
+			Random rnd = new Random();
 
-			//for (int x = 0; x != width; x++)
-			//{
-			//	for (int y = 0; y != height; y++)
-			//	{
-			//		int r = rnd.Next(300);
-			//		if (r > 100 && r < 200)
-			//		{
-			//			fld[x, y].SetCellYes(); // клетка есть
-			//		}
-			//		else
-			//		{
-			//			fld[x, y].SetCellNo();  // клетки нет
-			//		}
-			//	}
-			//}
+			for (int x = 2; x < width - 2; x++)
+			{
+				for (int y = 2; y < height - 2; y++)
+				{
+					int r = rnd.Next(300);
+					if (r > 100 && r < 200)
+					{
+						field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true }; // клетка есть
+					}
+				}
+			}
 
 			for (int x = 0; x < width; x++)
 			{
-				fld[x, 0].SetStaticCell();
-				fld[x, height - 1].SetStaticCell();
+				field[x, 0] = new Cell(this, x, 0) { isStaticCell = true, Status = StatusCell.Yes };
+				field[x, height - 1] = new Cell(this, x, height - 1) { isStaticCell = true, Status = StatusCell.Yes };
 			}
 
 			for (int y = 1; y < height - 1; y++)
 			{
-				fld[0, y].SetStaticCell();
-				fld[width - 1, y].SetStaticCell();
+				field[0, y] = new Cell(this, 0, y) { isStaticCell = true, Status = StatusCell.Yes };
+				field[width - 1, y] = new Cell(this, width - 1, y) { isStaticCell = true, Status = StatusCell.Yes };
 			}
 
-			GospersGliderGun(5, 5);
+			// GospersGliderGun(5, 5);
 
 			//DiagonalSpaceShip(width - 30, height - 30);
 		}

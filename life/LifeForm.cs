@@ -171,21 +171,25 @@ namespace life
             int cellSize = Math.Min((int)Math.Ceiling((decimal)(ClientSize.Width - x0) / fieldX),
                                (int)Math.Ceiling((decimal)(ClientSize.Height - y0) / fieldY));
 
+            Rectangle fieldRectangle = new Rectangle(x0, y0, cellSize * fieldX, cellSize * fieldY);
+
             ClientSize = new Size()
             {
-                Width = x0 + cellSize * fieldX,
-                Height = y0 + cellSize * fieldY
+                Width = x0 + fieldRectangle.Width,
+                Height = y0 + fieldRectangle.Height
             };
 
             field = new Field(fieldX, fieldY)
             {
-                TopLeftCorner = new Point(x0, y0),
+                rectangle = fieldRectangle,
 
                 CellSize = new Size(cellSize, cellSize),   // размер ячейки
 
                 brushCellYes = Brushes.DarkGreen,
                 brushCellNo = Brushes.LightGray
             };
+
+            //field.InitGraphicsBuffer(C)
         }
 
     }

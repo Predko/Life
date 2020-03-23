@@ -33,8 +33,8 @@ namespace life
 
 	public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
 	{
-		public StatusCell Status { get; private set; }		// есть клетка или нет
-		public StatusCell NewStatus { get; private set; }	// есть клетка или нет
+		public StatusCell Status { get; set; }		// есть клетка или нет
+		public StatusCell NewStatus { get; set; }	// есть клетка или нет
 		private readonly Field field;
 		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
 
@@ -52,7 +52,7 @@ namespace life
 			Location = fl;
 		}
 
-		public Cell(Field fld, short x, short y):this(fld, new FieldLocation(x,y))
+		public Cell(Field fld, int x, int y):this(fld, new FieldLocation(x,y))
 		{
 		}
 
@@ -68,7 +68,7 @@ namespace life
 		{
 			if (Status != cl)
 			{
-				field.listCellLocationToDraw.Add(this.Location);
+				field.listCellToDraw.Add(this);
 				Status = cl;
 			}
 		}
@@ -77,7 +77,66 @@ namespace life
 
 		public void SetCellYes() => SetCell(StatusCell.Yes);
 
-		public void ChangeStatus() => Status = NewStatus;
+		// Анализ следующего шага.
+		public void AnalysisNextStep()
+		{
+			int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
+
+			NewStatus = Status; // Новое состояние клетки приравниваем к старому
+
+			if (numberNearest == 3)
+			{
+				if (!IsLive())			// клетки нет
+				{
+					NewStatus = StatusCell.Yes;            // клетка родится
+
+					field.listCellToDraw.Add(this);	// добавляем клетки для отрисовки
+				}
+
+				field.NewListCells.Add(this);
+			}
+			else 
+			if (numberNearest == 2)
+			{
+				if (IsLive())
+				{
+					field.NewListCells.Add(this);       // клетка остаётся на следующий ход
+				}
+				else
+				{
+					active = false;		// делаем неактивной
+				}
+			}
+			else 
+			{
+				if (IsLive())   // клетка есть
+				{
+					NewStatus = StatusCell.No;         // клетка исчезает
+
+					field.listCellToDraw.Add(this);    // добавляем клетку для отрисовки
+				}
+
+				active = false; // make inactive
+			}
+		}
+
+		public void ChangeStatus()
+		{
+			if (Status != NewStatus)
+			{
+				if (NewStatus == StatusCell.Yes)
+				{ 
+					field.AddCell(this);
+				}
+
+				Status = NewStatus;
+			}
+			
+			if (!active)
+			{
+				field.RemoveCell(this);
+			}
+		}
 
 		public void SetStaticCell()
 		{
@@ -102,54 +161,11 @@ namespace life
 		// Преобразование координат поля в координаты рабочей области формы
 		private Rectangle GetRectangle() => new Rectangle()
 											{
-												X = field.TopLeftCorner.X + Location.X * field.CellSize.Width + 1,
-												Y = field.TopLeftCorner.Y + Location.Y * field.CellSize.Height + 1,
+												X = field.rectangle.X + Location.X * field.CellSize.Width + 1,
+												Y = field.rectangle.Y + Location.Y * field.CellSize.Height + 1,
 												Width = field.CellSize.Width - 2,
 												Height = field.CellSize.Height - 2
 											};
-
-		// Анализ следующего шага.
-		public void AnalysisNextStep()
-		{
-			int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
-
-			NewStatus = Status; // Новое состояние клетки приравниваем к старому
-
-			if (numberNearest == 3)
-			{
-				if (!IsLive())			// клетки нет
-				{
-					NewStatus = StatusCell.Yes;            // клетка родится
-
-					field.listCellLocationToDraw.Add(this.Location);	// добавляем клетки для отрисовки
-				}
-
-				field.NewListCells.Add(this);
-			}
-			else 
-			if (numberNearest == 2)
-			{
-				if (IsLive())
-				{
-					field.NewListCells.Add(this);       // клетка остаётся на следующий ход
-				}
-				else
-				{
-					active = false;                     // клетка не будет в списке активных
-				}
-			}
-			else 
-			{
-				if (IsLive())   // клетка есть
-				{
-					NewStatus = StatusCell.No;         // клетка исчезает
-
-					field.listCellLocationToDraw.Add(this.Location);    // добавляем клетку для отрисовки
-				}
-
-				active = false;                 // клетка становится неактивной(не добавляем в список для следующего хода)
-			}
-		}
 
 		public int CompareTo(Cell other) => Location.CompareTo(other.Location);
 
