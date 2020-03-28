@@ -44,7 +44,7 @@ namespace life
 	}
 
 	// поле, верхняя часть соединена с нижней, левая с правой
-	public class Field
+	public class Field:IDisposable
 	{
 		private readonly short width;
 		private readonly short height;
@@ -55,6 +55,8 @@ namespace life
 		public Brush brushCellYes;
 		public Brush brushCellNo;
 
+		Graphics bitmapGraphics;
+
 		public Bitmap bitmap;
 		public Bitmap bitmapCellYesNo;
 
@@ -64,102 +66,83 @@ namespace life
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
 
-		public BinaryTreeCells field;
+		public ICellArray field;
 
 		public List<Cell> CurrentListCells;         // Список активных клеток текущего хода
-		public List<Cell> NewListCells;             // Список активных клеток следующего хода
+		public List<Cell> NewListCells;             // Список активных клеток для следующего хода
 
-		public string log;  // строка содержащая информацию о изменениях в состоянии активных клеток на текущем ходе
-							// в виде: +(x,y) - клетка появилась, -(x,y) - клетка исчезла. например: +(1,1);-(10,5)
-							// <текущий шаг>:<+/->(<X>,<Y>)[;]
+		public List<Cell> ListCellsForDraw;         // Список клеток для отрисовки
 
+		public readonly LogOfSteps steps;			// Журнал изменений клеток на предыдущих ходах
 
 
 		// Длина и ширина в ячейках игрового поля. 
-		// Максимальные размер ограничен максимальным положительным значением типа short
-		public Field(int width, int height)
+		public Field(int width, int height, ICellArray cellArray)
 		{
 			this.height = (short)(height & 0x7fff);
 			this.width = (short)(width & 0x7fff);
-
-			field = new BinaryTreeCells();
 
 			Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
 			Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
 
 			CurrentListCells = new List<Cell>();
+			NewListCells = new List<Cell>();
+
+			ListCellsForDraw = new List<Cell>();
+
+			field = cellArray ?? new BinaryTreeCells();
+
+			steps = new LogOfSteps("steps.log", this);
 		}
+
+
 
 		public void InitBitmap()
 		{
 			bitmap = new Bitmap(rectangle.Width, rectangle.Height);
 
-			bitmapCellYesNo = new Bitmap(CellSize.Width * 2, CellSize.Height);
+			bitmapGraphics = Graphics.FromImage(bitmap);
+			
+			bitmapCellYesNo = new Bitmap((CellSize.Width - 2) * 2, CellSize.Height - 2);
 
 			DrawFieldToBitmap();
 		}
 
 		private void DrawFieldToBitmap()
 		{
-			Graphics bitmapGraphics = Graphics.FromImage(bitmapCellYesNo);
+			Graphics g = Graphics.FromImage(bitmapCellYesNo);
 
-			rectCellYes = new Rectangle(0, 0, CellSize.Width, CellSize.Height);
-			rectCellNo = new Rectangle(CellSize.Width, 0, CellSize.Width, CellSize.Height);
+			rectCellYes = new Rectangle(0, 0, CellSize.Width - 2, CellSize.Height - 2);
+			rectCellNo = new Rectangle(CellSize.Width - 2, 0, CellSize.Width - 2, CellSize.Height - 2);
 
-			bitmapGraphics.FillRectangle(brushCellYes, rectCellYes);
+			g.FillRectangle(brushCellYes, rectCellYes);
 
-			bitmapGraphics.FillRectangle(brushCellNo, rectCellNo);
+			g.FillRectangle(brushCellNo, rectCellNo);
 
-			bitmapGraphics.Dispose();
-
-			bitmapGraphics = Graphics.FromImage(bitmap);
+			g.Dispose();
 
 			for (int y = 0; y < height; y++)
 			{
 				for (int x = 0; x < width; x++)
 				{
-					Rectangle rectCurrentCell = new Rectangle()
-													{
-														X = x * CellSize.Width + 1,
-														Y = y * CellSize.Height + 1,
-														Width = CellSize.Width - 2,
-														Height = CellSize.Height - 2
-													};
-
-
-					bitmapGraphics.DrawImage(bitmapCellYesNo, rectCurrentCell, rectCellNo, GraphicsUnit.Pixel);
+					bitmapGraphics.DrawImage(bitmapCellYesNo, x * CellSize.Width + 1, y * CellSize.Height + 1, rectCellNo, GraphicsUnit.Pixel);
 				}
 			}
-
-			// Временно меняем прямоугольник отрисовки игрового поля на прямоугольник bitmap
-			Rectangle frect = rectangle;
-
-			rectangle = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
-
-			foreach(var cell in field)
-			{
-				if(cell.isStaticCell)
-				{
-					cell.Draw(bitmapGraphics);
-				}
-			}
-
-			// Восстанавливаем
-			rectangle = frect;
-
-			bitmapGraphics.Dispose();
 		}
 
-		public void Draw(Graphics g)
+		public void Redraw(Graphics g)
 		{
 			Rectangle rectsrc = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
-			
+
 			g.DrawImage(bitmap, rectangle, rectsrc, GraphicsUnit.Pixel);
-			
-			foreach (var cell in field)
+		}
+
+		public void Draw()
+		{
+			foreach(Cell cell in field)
 			{
-				cell.Draw(g);
+				cell.Draw(bitmapGraphics);
 			}
 		}
 
@@ -223,9 +206,49 @@ namespace life
 			return count;
 		}
 
-		public void CalcNextStep()
+		/// <summary>
+		/// Восстановление состояния клеток на состояние предыдущего хода
+		/// </summary>
+		public void PreviousStep()
 		{
 			NewListCells.Clear();
+			ListCellsForDraw.Clear();
+
+
+			if (!steps.Previous(CurrentListCells, NewListCells))
+			{
+				return;	// возврат на предыдущий ход завершился с ошибкой
+			}
+			
+			foreach (Cell cell in CurrentListCells)
+			{
+				cell.ChangeStatus();    // фиксируем изменения клеток
+			}
+
+			// Отрисовка изменившихся ячеек
+			foreach (Cell cell in ListCellsForDraw)
+			{
+				cell.Draw(bitmapGraphics);
+			}
+
+			CurrentListCells.Clear();
+			CurrentListCells.AddRange(NewListCells);
+
+			foreach (Cell cell in NewListCells)
+			{
+				AddNearestCells(cell.Location.X, cell.Location.Y);
+			}
+		}
+
+		
+		/// <summary>
+		/// Расчёт следующего хода.
+		/// </summary>
+		public void CalcNextStep()
+		{
+			// очищаем списки для клеток следующего хода и отрисовки
+			NewListCells.Clear();
+			ListCellsForDraw.Clear();
 
 			// рассчитываем состояние клеток для следующего шага
 			// Заносим клетки в список клеток следующего шага - NewListCells
@@ -234,26 +257,39 @@ namespace life
 				cell.AnalysisNextStep();
 			}
 
+			// Сохраняем изменения клеток на текущем ходе
+			if (steps != null)
+			{
+				steps.SetStep(CurrentListCells);
+			}
+
+			// фиксируем изменения клеток, рассчитанных при анализе
 			foreach (Cell cell in CurrentListCells)
 			{
-				cell.ChangeStatus();	// фиксируем изменения клеток
+				cell.ChangeStatus();	
+			}
+
+			// Отрисовка изменившихся ячеек
+			foreach(Cell cell in ListCellsForDraw)
+			{
+				cell.Draw(bitmapGraphics);
 			}
 
 			CurrentListCells.Clear();
 			CurrentListCells.AddRange(NewListCells);
 			
+			// Подготавливаем список текущих клеток, добавляя в него клетки вокруг живых
 			foreach (Cell cell in NewListCells)
 			{
 				AddNearestCells(cell.Location.X, cell.Location.Y);
-				Console.WriteLine($"{cell.Location.X},{cell.Location.Y}");
 			}
-			Console.WriteLine($"{NewListCells.Count}\t{CurrentListCells.Count}\t{field.Count}\n");
 		}
 
+		/// <summary>
+		/// Подготавливаем список текущих клеток для начала игры
+		/// </summary>
 		public void FieldInit()
 		{
-			NewListCells = new List<Cell>();
-
 			foreach(Cell currentCell in field)
 			{
 				if (!currentCell.isStaticCell && currentCell.IsLive())
@@ -346,8 +382,36 @@ namespace life
 			}
 		}
 
-		// Заполнение поля клетками случайным образом
+		/// <summary>
+		/// Заполнение поля клетками 
+		/// </summary>
 		public void EnterCells()
+		{
+			//SetRandomCells();	// случайным образом
+
+			SetBorderCells();	// Граница игрового поля
+
+			GospersGliderGun(5, 5); // Ружьё Госпера
+
+			//DiagonalSpaceShip(width - 50, height - 30); // Диагональный корабль
+		}
+
+		private void SetBorderCells()
+		{
+			for (int x = 0; x < width; x++)
+			{
+				field[x, 0] = new Cell(this, x, 0) { isStaticCell = true, Status = StatusCell.Yes };
+				field[x, height - 1] = new Cell(this, x, height - 1) { isStaticCell = true, Status = StatusCell.Yes };
+			}
+
+			for (int y = 1; y < height - 1; y++)
+			{
+				field[0, y] = new Cell(this, 0, y) { isStaticCell = true, Status = StatusCell.Yes };
+				field[width - 1, y] = new Cell(this, width - 1, y) { isStaticCell = true, Status = StatusCell.Yes };
+			}
+		}
+
+		private void SetRandomCells()
 		{
 			Random rnd = new Random();
 
@@ -362,22 +426,42 @@ namespace life
 					}
 				}
 			}
-
-			for (int x = 0; x < width; x++)
-			{
-				field[x, 0] = new Cell(this, x, 0) { isStaticCell = true, Status = StatusCell.Yes };
-				field[x, height - 1] = new Cell(this, x, height - 1) { isStaticCell = true, Status = StatusCell.Yes };
-			}
-
-			for (int y = 1; y < height - 1; y++)
-			{
-				field[0, y] = new Cell(this, 0, y) { isStaticCell = true, Status = StatusCell.Yes };
-				field[width - 1, y] = new Cell(this, width - 1, y) { isStaticCell = true, Status = StatusCell.Yes };
-			}
-
-			// GospersGliderGun(5, 5);
-
-			//DiagonalSpaceShip(width - 30, height - 30);
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // Для определения избыточных вызовов
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					bitmapGraphics.Dispose();
+				}
+
+				// TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить ниже метод завершения.
+				// TODO: задать большим полям значение NULL.
+
+				disposedValue = true;
+			}
+		}
+
+		// TODO: переопределить метод завершения, только если Dispose(bool disposing) выше включает код для освобождения неуправляемых ресурсов.
+		// ~Field()
+		// {
+		//   // Не изменяйте этот код. Разместите код очистки выше, в методе Dispose(bool disposing).
+		//   Dispose(false);
+		// }
+
+		// Этот код добавлен для правильной реализации шаблона высвобождаемого класса.
+		public void Dispose()
+		{
+			// Не изменяйте этот код. Разместите код очистки выше, в методе Dispose(bool disposing).
+			Dispose(true);
+			// TODO: раскомментировать следующую строку, если метод завершения переопределен выше.
+			// GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

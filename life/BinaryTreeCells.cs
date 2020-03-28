@@ -154,7 +154,7 @@ namespace life
         }
     }
 
-    public class BinaryTreeCells : IEnumerable<Cell>
+    public class BinaryTreeCells : ICellArray
     {
         BinaryTreeCellsNode rootNode;
         private int count;
@@ -273,7 +273,7 @@ namespace life
                         Add(node.left, node.right);
                     }
                 }
-                
+
                 count--;
                 node.parent = null;
             }

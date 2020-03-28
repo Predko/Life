@@ -1,84 +1,84 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace life
 {
-	// Индексатор с круговыми индексами
+    class CellArray : ICellArray
+    {
+        public int Count { get; set; }
 
-	public class CellArray
-	{
-		private Cell[,] cells;
-		protected readonly int width;
-		protected readonly int height;
+        private Cell[,] cells;
+        
+        public CellArray(int x, int y)
+        {
+            cells = new Cell[x, y];
+            Count = 0;
+        }
+        
+        public Cell this[int x, int y]
+        {
+            get => cells[x, y];
 
+            set
+            {
+                if (cells[x, y] == null)
+                {
+                    cells[x, y] = value;
 
+                    Count++;
+                }
+            }
+        }
 
-		public CellArray(Field fld, int x, int y)
-		{
-			width = x;
-			height = y;
+        public void Add(Cell cell)
+        {
+            if (cell == null)
+                return;
 
-			Init(fld);
-		}
+            cells[cell.Location.X, cell.Location.Y] = cell;
+            Count++;
+        }
 
-		private void Init(Field fld)
-		{
-			cells = new Cell[width, height];
-			// инициализация всех ячеек
-			for (short k = 0; k != width; k++)
-			{
-				for (short m = 0; m != height; m++)
-				{
-					cells[k, m] = new Cell(fld, k, m);
-				}
-			}
-		}
+        public void Remove(Cell cell)
+        {
+            cells[cell.Location.X, cell.Location.Y] = null;
+            Count--;
+        }
 
-		// индексатор
-		public Cell this[int i, int j]
-		{
-			get
-			{
-				return cells[TrueIndexI(i), TrueIndexJ(j)];
-			}
-			set
-			{
-				cells[TrueIndexI(i), TrueIndexJ(j)].Copy(value);
-			}
-		}
+        public IEnumerator<Cell> GetEnumerator()
+        {
+            int count = Count;
 
-		// возвращает правильный индекс i = 0 - (mi-1)
-		protected virtual int TrueIndexI(int i)
-		{
-			if (i < 0)
-			{
-				return width + i;
-			}
-			else
-			if (i >= width)
-			{
-				return i - width;
-			}
+            foreach (Cell cell in cells)
+            {
+                if (cell == null)
+                    continue;
 
-			return i;
-		}
+                if (count-- == 0)
+                {
+                    yield break;
+                }
 
-		// возвращает правильный индекс j = 0 - (mj-1)
-		protected virtual int TrueIndexJ(int j)
-		{
-			if (j < 0)
-			{
-				return height + j;
-			}
-			else
-			if (j >= height)
-			{
-				return j - height;
-			}
+                yield return cell;
+            }
+            
+            //for (int x = 0; x < cells.GetLength(0); x++)
+            //{
+            //    for (int y = 0; y < cells.GetLength(1); y++)
+            //    {
+                    
+                    
+            //        yield return cells[x,y];
+            //    }
+            //}
+        }
 
-			return j;
-		}
-	}
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }

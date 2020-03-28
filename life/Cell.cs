@@ -16,7 +16,7 @@ namespace life
 	public enum Calccmd { apply_changes, analysis_nextstep, del_calc_func, delete_not_active, draw };
 	public enum Cell_is { yes, no };
 
-	public enum StatusCell { Yes, No };
+	public enum StatusCell { Yes, No, Nil };
 
 	public class CellEvent 
 	{
@@ -35,7 +35,7 @@ namespace life
 	{
 		public StatusCell Status { get; set; }		// есть клетка или нет
 		public StatusCell NewStatus { get; set; }	// есть клетка или нет
-		private readonly Field field;
+		public Field field;
 		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
 
 		public bool active;             // активная ячейка(true)- добавлена в список событий
@@ -45,6 +45,7 @@ namespace life
 		{
 			field = fld;
 			Status = StatusCell.No;
+			NewStatus = StatusCell.Nil;
 			isStaticCell = false;
 
 			SetCell();
@@ -56,9 +57,18 @@ namespace life
 		{
 		}
 
+		public Cell(Cell cell)
+		{
+			Copy(cell);
+		}
+
 		public void Copy(Cell cl)
 		{
-			SetCell(cl.Status);
+			field = cl.field;
+			Status = cl.Status;
+			NewStatus = cl.NewStatus;
+			active = cl.active;
+			isStaticCell = cl.isStaticCell;
 			Location = cl.Location;
 		}
 
@@ -76,9 +86,16 @@ namespace life
 
 		public void SetCellYes() => SetCell(StatusCell.Yes);
 
-		// Анализ следующего шага.
+		/// <summary>
+		/// Анализ следующего шага.
+		/// </summary>
 		public void AnalysisNextStep()
 		{
+			//if (isStaticCell)
+			//{
+			//	field.NewListCells.Add(this);
+			//}
+			
 			int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
 
 			NewStatus = Status; // Новое состояние клетки приравниваем к старому
@@ -115,23 +132,30 @@ namespace life
 			}
 		}
 
+		/// <summary>
+		/// Меняем состояние клетки м зависимости от произведённого ранее анализа
+		/// </summary>
 		public void ChangeStatus()
 		{
-			if (Status != NewStatus)
+			if (IsChangeStatus())
 			{
-				if (NewStatus == StatusCell.Yes)
+				if (NewStatus == StatusCell.Yes)	// клетка должна появиться
 				{ 
 					field.AddCell(this);
 				}
 
 				Status = NewStatus;
+				
+				field.ListCellsForDraw.Add(this);
 			}
 			
-			if (!active)
+			if (!active) // неактивные(погибшие) клетки удаляем с поля
 			{
 				field.RemoveCell(this);
 			}
 		}
+
+		public bool IsChangeStatus() => (Status != NewStatus);
 
 		public void SetStaticCell()
 		{
@@ -139,28 +163,23 @@ namespace life
 			SetCell(StatusCell.Yes);
 		}
 
-		// отрисовываем ячейку
+		// отрисовываем ячейку на битовой карте
 		public virtual void Draw(Graphics g)
 		{
+			// Координаты точки для отрисовки
+			int X = Location.X * field.CellSize.Width + 1;
+			int Y = Location.Y * field.CellSize.Height + 1;
+
 			if (Status == StatusCell.Yes)
 			{
-				g.DrawImage(field.bitmapCellYesNo, GetRectangle(), field.rectCellYes, GraphicsUnit.Pixel);
+				g.DrawImage(field.bitmapCellYesNo, X, Y, field.rectCellYes, GraphicsUnit.Pixel);
 			}
 			else
 			if (Status == StatusCell.No)
 			{
-				g.DrawImage(field.bitmapCellYesNo, GetRectangle(), field.rectCellNo, GraphicsUnit.Pixel);
+				g.DrawImage(field.bitmapCellYesNo, X, Y, field.rectCellNo, GraphicsUnit.Pixel);
 			}
 		}
-
-		// Преобразование координат поля в координаты рабочей области формы
-		private Rectangle GetRectangle() => new Rectangle()
-											{
-												X = field.rectangle.X + Location.X * field.CellSize.Width + 1,
-												Y = field.rectangle.Y + Location.Y * field.CellSize.Height + 1,
-												Width = field.CellSize.Width - 2,
-												Height = field.CellSize.Height - 2
-											};
 
 		public int CompareTo(Cell other) => Location.CompareTo(other.Location);
 

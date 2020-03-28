@@ -41,6 +41,16 @@ namespace life
 
                         Invalidate();
                         break;
+
+                    case name_btnSaveLog:
+
+                        field.steps.SaveFile();
+                        break;
+
+                    case name_btnPreviousStep:
+
+                        field.PreviousStep();
+                        break;
                 }
 
             }

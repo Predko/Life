@@ -10,7 +10,7 @@ namespace life
 {
     public partial class LifeForm : Form
     {
-        private IContainer components = null;
+        private readonly IContainer components = null;
 
         private Button btnStartStop;
         private const string name_btnStartStop = "btnStartStop";
@@ -18,13 +18,16 @@ namespace life
         private Button btnMakeAStep;
         private const string name_btnMakeAStep = "btnDoStep";
 
+        private Button btnSaveLog;
+        private const string name_btnSaveLog = "btnSaveLog";
+
+        private Button btnPreviousStep;
+        private const string name_btnPreviousStep = "btnPreviousStep";
+
         private const string text_start = "Start";
         private const string text_stop = "Stop";
 
         Label lbCount;
-
-        private Font font;
-
 
         private int count;      // счётчик ходов
 
@@ -73,7 +76,7 @@ namespace life
         {
             base.OnPaint(e);
 
-            field.Draw(e.Graphics);
+            field.Redraw(e.Graphics);
         }
 
         /// <summary>
@@ -108,9 +111,31 @@ namespace life
 
             btnMakeAStep.Click += Btn_Click;
 
-            lbCount = new Label()
+            btnSaveLog = new Button
             {
                 Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
+                Text = "Save log",
+                AutoSize = true,
+                Name = name_btnSaveLog,
+                TabIndex = 2
+            };
+
+            btnSaveLog.Click += Btn_Click;
+
+            btnPreviousStep = new Button
+            {
+                Location = new Point(btnSaveLog.Location.X + btnSaveLog.Size.Width + 10, 2),
+                Text = "Previous step",
+                AutoSize = true,
+                Name = name_btnPreviousStep,
+                TabIndex = 2
+            };
+
+            btnPreviousStep.Click += Btn_Click;
+
+            lbCount = new Label()
+            {
+                Location = new Point(btnSaveLog.Location.X + btnSaveLog.Size.Width + 10, 2),
                 Text = "Step: ",
                 AutoSize = true,
                 Name = nameof(lbCount)
@@ -128,6 +153,8 @@ namespace life
 
             Controls.Add(btnStartStop);
             Controls.Add(btnMakeAStep);
+            Controls.Add(btnSaveLog);
+            Controls.Add(btnPreviousStep);
             Controls.Add(lbCount);
 
             AutoScaleDimensions = new SizeF(6f, 13f);
@@ -157,13 +184,15 @@ namespace life
 
         private void InitField()
         {
-            field = new Field(fieldX, fieldY);
+            field = new Field(fieldX, fieldY, new CellArray(fieldX, fieldY));
 
             field.EnterCells();
 
             SetSizeFormAndField();
 
             field.FieldInit();
+
+            field.Draw();
         }
 
         // Корректируем размер рабочей области формы кратно размерам поля
