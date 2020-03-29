@@ -11,20 +11,43 @@ namespace life
         public int Count { get; set; }
 
         private Cell[,] cells;
+
+        private int width;
+        private int height;
         
         public CellArray(int x, int y)
         {
             cells = new Cell[x, y];
             Count = 0;
+            width = x;
+            height = y;
         }
         
         public Cell this[int x, int y]
         {
-            get => cells[x, y];
+            get
+            {
+#if !DEBUG
+            if (x >= width || y >= height)
+            {
+                return;
+            }
+#endif
+
+                return cells[x, y];
+            }
 
             set
             {
-                if (cells[x, y] == null)
+
+#if !DEBUG
+            if (x >= width || y >= height)
+            {
+                return;
+            }
+#endif
+
+                if (cells[x, y] == null && value != null)
                 {
                     cells[x, y] = value;
 
@@ -36,16 +59,53 @@ namespace life
         public void Add(Cell cell)
         {
             if (cell == null)
+            {
                 return;
+            }
+
+#if !DEBUG
+            if (cell.Location.X >= width || cell.Location.Y >= height)
+            {
+                return;
+            }
+#endif
+            if (cells[cell.Location.X, cell.Location.Y] == null)
+            {
+                Count++;
+            }
 
             cells[cell.Location.X, cell.Location.Y] = cell;
-            Count++;
         }
 
         public void Remove(Cell cell)
         {
-            cells[cell.Location.X, cell.Location.Y] = null;
-            Count--;
+
+#if !DEBUG
+            if (cell.Location.X >= width || cell.Location.Y >= height)
+            {
+                return;
+            }
+#endif
+
+            if (cells[cell.Location.X, cell.Location.Y] != null)
+            {
+                cells[cell.Location.X, cell.Location.Y] = null;
+
+                Count--;
+            }
+        }
+
+        public void Clear()
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    cells[x,y] = null;
+                }
+            }
+
+            Count = 0;
         }
 
         public IEnumerator<Cell> GetEnumerator()

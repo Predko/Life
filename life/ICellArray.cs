@@ -10,5 +10,6 @@ namespace life
 
         void Add(Cell cell);
         void Remove(Cell cell);
+        void Clear();
     }
 }

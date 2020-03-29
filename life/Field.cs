@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
+using System.IO;
+using System.Windows.Forms;
+using System.Text;
 
 namespace life
 {
@@ -35,15 +37,9 @@ namespace life
 		public static bool operator >(FieldLocation left, FieldLocation right)	=> left.CompareTo(right) > 0;
 
 		public static bool operator >=(FieldLocation left, FieldLocation right) => left.CompareTo(right) >= 0;
-
-		//public static implicit operator FieldLocation(Point p)
-		//{
-		//	return new FieldLocation() { X = p.X, Y = p.Y };
-		//}
-
 	}
 
-	// поле, верхняя часть соединена с нижней, левая с правой
+	// Игровое поле
 	public class Field:IDisposable
 	{
 		private readonly short width;
@@ -66,7 +62,7 @@ namespace life
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
 
-		public ICellArray field;
+		private readonly ICellArray field;			// хранилище ячеек игрового поля
 
 		public List<Cell> CurrentListCells;         // Список активных клеток текущего хода
 		public List<Cell> NewListCells;             // Список активных клеток для следующего хода
@@ -109,6 +105,15 @@ namespace life
 			DrawFieldToBitmap();
 		}
 
+		public void Clear()
+		{
+			field.Clear();
+
+			steps.Clear();
+		}
+
+		public bool IsLogEmpty() => steps.IsBegin();
+
 		private void DrawFieldToBitmap()
 		{
 			Graphics g = Graphics.FromImage(bitmapCellYesNo);
@@ -131,6 +136,10 @@ namespace life
 			}
 		}
 
+		/// <summary>
+		/// Отрисовка подготовленной битовой карты на форме
+		/// </summary>
+		/// <param name="g"></param>
 		public void Redraw(Graphics g)
 		{
 			Rectangle rectsrc = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
@@ -207,24 +216,40 @@ namespace life
 		}
 
 		/// <summary>
-		/// Восстановление состояния клеток на состояние предыдущего хода
+		/// Восстанавливает состояние клеток на состояние предыдущего хода
 		/// </summary>
-		public void PreviousStep()
+		/// <returns>true  если ещё есть записи в логе</returns>
+		public bool PreviousStep()
 		{
-			NewListCells.Clear();
 			ListCellsForDraw.Clear();
 
-
-			if (!steps.Previous(CurrentListCells, NewListCells))
-			{
-				return;	// возврат на предыдущий ход завершился с ошибкой
-			}
-			
+			// удаляем все не живые клетки с поля(активные клетки, вокруг живых)  
 			foreach (Cell cell in CurrentListCells)
 			{
-				cell.ChangeStatus();    // фиксируем изменения клеток
+				if (!cell.IsLive())
+				{
+					RemoveCell(cell);
+				}
 			}
 
+			// восстанавливаем состояние поля на состояние предыдущего хода
+			if (!steps.Previous(NewListCells))
+			{
+				// возврат на предыдущий ход завершился с ошибкой
+				// состояние поля - на начальное
+
+				field.Clear();
+
+				EnterCells();
+
+				FieldInit();
+
+				DrawFieldToBitmap();
+				Draw();
+				
+				return false;	
+			}
+			
 			// Отрисовка изменившихся ячеек
 			foreach (Cell cell in ListCellsForDraw)
 			{
@@ -238,6 +263,8 @@ namespace life
 			{
 				AddNearestCells(cell.Location.X, cell.Location.Y);
 			}
+
+			return !steps.IsBegin();
 		}
 
 		
@@ -286,15 +313,144 @@ namespace life
 		}
 
 		/// <summary>
+		/// Сохраняет текущее поле в файл
+		/// Формат текстового файла:
+		/// {Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
+		/// </summary>
+		/// <param name="fileName"></param>
+		public void Save(string fileName = null)
+		{
+			if (fileName == null)
+			{
+				fileName = "Life.save";
+			}
+
+			try
+			{
+				using (StreamWriter writer = new StreamWriter(fileName))
+				{
+					int count = 0;
+
+					foreach(var cell in field)
+					{
+						if (cell.IsLive())
+						{
+							count++;
+						}
+					}
+					
+					writer.Write($"{count}:");
+
+					foreach (var cell in field)
+					{
+						if (cell.IsLive())
+						{
+							char isStaticCell = (cell.isStaticCell) ? 's' : 'n';
+							writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				MessageBox.Show(e.Message + "public void Field::Save(string fileName)");
+			}
+		}
+
+		/// <summary>
+		/// Загружает игровое поле из файла
+		/// </summary>
+		/// <param name="fileName"></param>
+		public void Load(string fileName = null)
+		{
+			if (fileName == null)
+			{
+				fileName = "Life.save";
+			}
+
+			using ( StreamReader reader = new StreamReader(fileName))
+			{
+				try
+				{
+					Clear();
+					
+					int count = ReadInt(reader);
+					
+					for (int i = 0; i < count; i++)
+					{
+						field.Add(ReadCell(reader));
+					}
+
+					FieldInit();
+
+					DrawFieldToBitmap();
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message + "\npublic void Field::Load(string fileName)");
+
+					return;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Читает целое число, ограниченное разделителями, из файла
+		/// </summary>
+		/// <returns></returns>
+		private int ReadInt(StreamReader sr)
+		{
+			StringBuilder s = new StringBuilder(10);
+
+			while ( sr.Peek() > -1)
+			{
+				char c = (char)sr.Read();
+
+				if (c == ',' || c == ';' || c == ':')
+				{
+					break;
+				}
+
+				s.Append(c);
+			}
+
+			return int.Parse(s.ToString());
+		}
+
+		/// <summary>
+		/// Читает данные одной ячейки и создаёт её
+		/// </summary>
+		/// <param name="sr"></param>
+		/// <returns>возвращает соззданную ячейку</returns>
+		private Cell ReadCell(StreamReader sr)
+		{
+			int x = ReadInt(sr);
+			int y = ReadInt(sr);
+
+			Cell cell = new Cell(this, x, y)
+			{
+				Status = StatusCell.Yes,
+				NewStatus = StatusCell.Yes,
+				active = true,
+				isStaticCell = (sr.Read() == 's') ? true : false
+			};
+
+			sr.Read();	// разделитель ';'
+
+			return cell;
+		}
+
+		/// <summary>
 		/// Подготавливаем список текущих клеток для начала игры
 		/// </summary>
 		public void FieldInit()
 		{
+			NewListCells.Clear();
+			
 			foreach(Cell currentCell in field)
 			{
 				if (!currentCell.isStaticCell && currentCell.IsLive())
 				{
-					currentCell.active = true;
 					NewListCells.Add(currentCell);
 				}
 			}
@@ -387,11 +543,11 @@ namespace life
 		/// </summary>
 		public void EnterCells()
 		{
-			//SetRandomCells();	// случайным образом
+			SetRandomCells();	// случайным образом
 
 			SetBorderCells();	// Граница игрового поля
 
-			GospersGliderGun(5, 5); // Ружьё Госпера
+			//GospersGliderGun(5, 5); // Ружьё Госпера
 
 			//DiagonalSpaceShip(width - 50, height - 30); // Диагональный корабль
 		}

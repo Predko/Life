@@ -33,22 +33,15 @@ namespace life
             current = steps.Last;
         }
 
+        public void Clear()
+        {
+            steps.Clear();
+            current = steps.Last;
+        }
+
         public void Add(string s) => current = steps.AddLast(s);
 
-        public List<Cell> Next(List<Cell> cells) 
-        {
-            if(current.Next == null)   // достигнут конец лога
-            {
-                return null;
-            }
-
-            current = current.Next;
-
-
-
-
-            return cells;
-        }
+        public bool IsBegin() => (current == null);
 
         /// <summary>
         /// Восстанавливает состояние ячеек на предыдущем ходу
@@ -57,26 +50,12 @@ namespace life
         /// </summary>
         /// <param name="currentCells"></param>
         /// <returns></returns>
-        public bool Previous(List<Cell> currentCells, List<Cell> newListCells)
+        public bool Previous(List<Cell> currentListCells)
         {
-            List<Cell> listCopyOfCells = new List<Cell>();
-            List<Cell> newCells = new List<Cell>();     // список клеток для добавления
-
-            // делаем копию текущего списка ячеек и их точного состояния
-            foreach (var cell in  currentCells)
-            {
-                listCopyOfCells.Add(new Cell(cell));
-            }
-
             // Проверяем не пуст ли лог
             if (current == null)
             {
-                current = steps.Last;
-
-                if (current == null)
-                {
-                    return false;   // Лог пуст
-                }
+                return true;   // Лог пуст
             }
             
             // извлекаем список изменений клеток из журнала
@@ -94,55 +73,58 @@ namespace life
             foreach (var cell in cellsFromLog)
             {
                 // Если клетка была добавлена на предыдущем ходе
-                // помечаем её для удаления при ходе назад
+                // удаляем её с поля и из текущего списка активных клуток при ходе назад
                 if (cell.NewStatus == StatusCell.Yes) 
                 {
                     int hashCode = cell.GetHashCode();
 
-                    Cell foundCell = currentCells.Find(c => c.GetHashCode() == hashCode);
+                    Cell foundCell = currentListCells.Find(c => c.GetHashCode() == hashCode);
                     
                     if (foundCell == null)
                     {
                         MessageBox.Show("Не соответствие истории и текущих ячеек");
 
-                        // восстанавливаем состояние клеток
-                        currentCells.Clear();
-                        currentCells.AddRange(listCopyOfCells);
-
                         return false;
                     }
 
                     foundCell.NewStatus = StatusCell.No;
-                    
+                    foundCell.Status = StatusCell.No;
+
                     foundCell.active = false; // make inactive
+
+                    // удаляем клетку с поля и из списка активных
+                    // добавляем в список для отрисовки
+                    currentListCells.Remove(foundCell);
+
+                    currentField.RemoveCell(foundCell);
+
+                    currentField.ListCellsForDraw.Add(foundCell);
                 }
                 else
                 // Если клетка исчезла на предыдущем ходе
-                // добавим в список для изменения статуса и добавления её при ходе назад
+                // добавим в список активных и на игровое поле
+                // и для отрисовки
                 if (cell.NewStatus == StatusCell.No)
                 {                                    
                     cell.field = currentField;
                     cell.active = true;
-                    cell.Status = StatusCell.No;
+                    cell.Status = StatusCell.Yes;
                     cell.NewStatus = StatusCell.Yes;
 
-                    newCells.Add(cell);
+                    currentListCells.Add(cell);
+
+                    currentField.AddCell(cell);
+
+                    currentField.ListCellsForDraw.Add(cell);
                 }
             }
 
-            currentCells.AddRange(newCells);
-
-            // формируем новый список следующего хода
-            foreach (var cell in currentCells)
-            {
-                if ((cell.IsLive() && cell.NewStatus != StatusCell.No) ||
-                    cell.NewStatus == StatusCell.Yes)
-                {
-                    newListCells.Add(cell);
-                }
-            }
+            var delNode = current;
 
             current = current.Previous;
+
+            steps.Remove(delNode);
+
             return true;
         }
 
@@ -181,12 +163,9 @@ namespace life
 
             step.Insert(0, $"{count}:");
 
-            if (current == steps.Last)
-            {
-                steps.AddLast(step.ToString());
+            steps.AddLast(step.ToString());
 
-                current = steps.Last;
-            }
+            current = steps.Last;
         }
 
         /// <summary>
@@ -243,50 +222,6 @@ namespace life
 
 
             return cells;
-        }
-
-        /// <summary>
-        /// Сохранение истории в файл
-        /// </summary>
-        public void SaveFile()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(fileName))
-                {
-                    foreach (var stepString in steps)
-                    {
-                        writer.WriteLine(stepString);
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                MessageBox.Show(e.Message + "public void SaveFile() in LogOfSteps.cs");
-            }
-        }
-
-        /// <summary>
-        /// Загрузка истории из файла
-        /// </summary>
-        public void LoadFile()
-        {
-            try
-            {
-                using (StreamReader reader = new StreamReader(fileName))
-                {
-                    string stepString;
-
-                    while ((stepString = reader.ReadLine()) != null)
-                    {
-                        steps.AddLast(stepString);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message + "public void SaveFile() in LogOfSteps.cs");
-            }
         }
     }
 }

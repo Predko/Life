@@ -18,11 +18,14 @@ namespace life
         private Button btnMakeAStep;
         private const string name_btnMakeAStep = "btnDoStep";
 
-        private Button btnSaveLog;
-        private const string name_btnSaveLog = "btnSaveLog";
-
         private Button btnPreviousStep;
         private const string name_btnPreviousStep = "btnPreviousStep";
+
+        private Button btnSaveField;
+        private const string name_btnSaveField = "btnSaveField";
+
+        private Button btnLoadField;
+        private const string name_btnLoadField = "btnLoadField";
 
         private const string text_start = "Start";
         private const string text_stop = "Stop";
@@ -111,31 +114,43 @@ namespace life
 
             btnMakeAStep.Click += Btn_Click;
 
-            btnSaveLog = new Button
-            {
-                Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
-                Text = "Save log",
-                AutoSize = true,
-                Name = name_btnSaveLog,
-                TabIndex = 2
-            };
-
-            btnSaveLog.Click += Btn_Click;
-
             btnPreviousStep = new Button
             {
-                Location = new Point(btnSaveLog.Location.X + btnSaveLog.Size.Width + 10, 2),
+                Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
                 Text = "Previous step",
                 AutoSize = true,
                 Name = name_btnPreviousStep,
-                TabIndex = 2
+                TabIndex = 3,
+                Enabled = false
             };
 
             btnPreviousStep.Click += Btn_Click;
 
+            btnSaveField = new Button
+            {
+                Location = new Point(btnPreviousStep.Location.X + btnPreviousStep.Size.Width + 10, 2),
+                Text = "Save Field",
+                AutoSize = true,
+                Name = name_btnSaveField,
+                TabIndex = 4
+            };
+
+            btnSaveField.Click += Btn_Click;
+
+            btnLoadField = new Button
+            {
+                Location = new Point(btnSaveField.Location.X + btnSaveField.Size.Width + 10, 2),
+                Text = "Load Field",
+                AutoSize = true,
+                Name = name_btnLoadField,
+                TabIndex = 5
+            };
+
+            btnLoadField.Click += Btn_Click;
+
             lbCount = new Label()
             {
-                Location = new Point(btnSaveLog.Location.X + btnSaveLog.Size.Width + 10, 2),
+                Location = new Point(btnLoadField.Location.X + btnLoadField.Size.Width + 10, 2),
                 Text = "Step: ",
                 AutoSize = true,
                 Name = nameof(lbCount)
@@ -153,8 +168,9 @@ namespace life
 
             Controls.Add(btnStartStop);
             Controls.Add(btnMakeAStep);
-            Controls.Add(btnSaveLog);
             Controls.Add(btnPreviousStep);
+            Controls.Add(btnSaveField);
+            Controls.Add(btnLoadField);
             Controls.Add(lbCount);
 
             AutoScaleDimensions = new SizeF(6f, 13f);

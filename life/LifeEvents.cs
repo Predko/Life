@@ -22,6 +22,9 @@ namespace life
 
                             btnStartStop.Text = text_stop;
                             btnMakeAStep.Enabled = false;
+                            btnPreviousStep.Enabled = false;
+                            btnSaveField.Enabled = false;
+                            btnLoadField.Enabled = false;
                         }
                         else
                         {
@@ -29,6 +32,9 @@ namespace life
 
                             btnStartStop.Text = text_start;
                             btnMakeAStep.Enabled = true;
+                            btnPreviousStep.Enabled = true;
+                            btnSaveField.Enabled = true;
+                            btnLoadField.Enabled = true;
                         }
 
                         break;
@@ -39,17 +45,44 @@ namespace life
 
                         Count++;
 
+                        btnPreviousStep.Enabled = true;
+
                         Invalidate();
-                        break;
-
-                    case name_btnSaveLog:
-
-                        field.steps.SaveFile();
                         break;
 
                     case name_btnPreviousStep:
 
-                        field.PreviousStep();
+                        if (field.IsLogEmpty())
+                        {
+                            break;
+                        }
+                        
+                        if (!field.PreviousStep()) // если лог пуст, делаем неактивной кнопку 
+                        {
+                            btnPreviousStep.Enabled = false;
+                        }
+
+                        Count--;
+
+                        Invalidate();
+                        break;
+
+                    case name_btnSaveField:
+
+                        field.Save();
+                        break;
+
+                    case name_btnLoadField:
+
+                        field.Load();
+
+                        field.Draw();
+
+                        btnPreviousStep.Enabled = false;
+
+                        Count = 0;
+
+                        Invalidate();
                         break;
                 }
 

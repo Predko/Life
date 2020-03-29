@@ -167,6 +167,12 @@ namespace life
             count = 0;
         }
 
+        public void Clear()
+        {
+            rootNode = null;
+            count = 0;
+        }
+
         public BinaryTreeCellsNode First() => rootNode;
 
         public void Add(Cell cell) => Add(new BinaryTreeCellsNode(cell));
