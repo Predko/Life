@@ -5,100 +5,6 @@ namespace life
 {
     public partial class LifeForm : Form
     {
-
-        private void Btn_Click(object sender, EventArgs e)
-        {
-            if (sender is Button)
-            {
-                Button btn = sender as Button;
-
-                switch (btn.Name)
-                {
-                    case name_btnStartStop:
-
-                        if (btnStartStop.Text == text_start)
-                        {
-                            timer.Start();
-
-                            btnStartStop.Text = text_stop;
-                            btnMakeAStep.Enabled = false;
-                            btnPreviousStep.Enabled = false;
-                            btnSaveField.Enabled = false;
-                            btnLoadField.Enabled = false;
-                        }
-                        else
-                        {
-                            timer.Stop();
-
-                            btnStartStop.Text = text_start;
-                            btnMakeAStep.Enabled = true;
-                            btnPreviousStep.Enabled = true;
-                            btnSaveField.Enabled = true;
-                            btnLoadField.Enabled = true;
-                        }
-
-                        break;
-
-                    case name_btnMakeAStep:
-
-                        field.CalcNextStep();
-
-                        Count++;
-
-                        btnPreviousStep.Enabled = true;
-
-                        Invalidate();
-                        break;
-
-                    case name_btnPreviousStep:
-
-                        if (field.IsLogEmpty())
-                        {
-                            break;
-                        }
-                        
-                        if (!field.PreviousStep()) // если лог пуст, делаем неактивной кнопку 
-                        {
-                            btnPreviousStep.Enabled = false;
-                        }
-
-                        Count--;
-
-                        Invalidate();
-                        break;
-
-                    case name_btnSaveField:
-
-                        field.Save();
-                        break;
-
-                    case name_btnLoadField:
-
-                        field.Load();
-
-                        field.Draw();
-
-                        btnPreviousStep.Enabled = false;
-
-                        Count = 0;
-
-                        Invalidate();
-                        break;
-                }
-
-            }
-        }
-
-
-        private void BtnMakeAStep_Click(object sender, EventArgs e)
-        {
-            field.CalcNextStep();
-
-            Count++;
-
-            Invalidate();
-        }
-
         private void BtnStartStop_Click(object sender, EventArgs e)
         {
             if (btnStartStop.Text == text_start)
@@ -107,6 +13,9 @@ namespace life
 
                 btnStartStop.Text = text_stop;
                 btnMakeAStep.Enabled = false;
+                btnPreviousStep.Enabled = false;
+                btnSaveField.Enabled = false;
+                btnLoadField.Enabled = false;
             }
             else
             {
@@ -114,7 +23,66 @@ namespace life
 
                 btnStartStop.Text = text_start;
                 btnMakeAStep.Enabled = true;
+                btnPreviousStep.Enabled = true;
+                btnSaveField.Enabled = true;
+                btnLoadField.Enabled = true;
             }
+        }
+
+        private void BtnMakeAStep_Click(object sender, EventArgs e)
+        {
+            field.CalcNextStep();
+
+            Count++;
+
+            btnPreviousStep.Enabled = true;
+
+            Invalidate();
+        }
+
+        private void BtnPreviousStep_Click(object sender, EventArgs e)
+        {
+            if (field.IsLogEmpty())
+            {
+                return;
+            }
+
+            if (!field.PreviousStep()) // если лог пуст, делаем неактивной кнопку 
+            {
+                btnPreviousStep.Enabled = false;
+            }
+
+            Count--;
+
+            Invalidate();
+        }
+
+        private void BtnSaveField_Click(object sender, EventArgs e)
+        {
+            if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            field.Save(saveFileDialog.FileName);
+        }
+
+        private void BtnLoadField_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            field.Load(openFileDialog.FileName);
+
+            field.Draw();
+
+            btnPreviousStep.Enabled = false;
+
+            Count = 0;
+
+            Invalidate();
         }
 
         private void LifeForm_KeyUp(object sender, KeyEventArgs e)

@@ -9,13 +9,13 @@ namespace life
 {
 	public struct FieldLocation: IComparable<FieldLocation>, IEquatable<FieldLocation>
 	{
-		public short X;
-		public short Y;
+		public int X;
+		public int Y;
 
 		public FieldLocation(int x, int y)
 		{
-			X = (short)(x & 0x7FFF);
-			Y = (short)(y & 0x7FFF);
+			X = x;
+			Y = y;
 		}
 
 		public int CompareTo(FieldLocation fl) => GetHashCode() - fl.GetHashCode();
@@ -42,8 +42,8 @@ namespace life
 	// Игровое поле
 	public class Field:IDisposable
 	{
-		private readonly short width;
-		private readonly short height;
+		private readonly int width;
+		private readonly int height;
 
 		public Size CellSize { get; set; }
 		public Rectangle rectangle { get; set; }
@@ -75,8 +75,8 @@ namespace life
 		// Длина и ширина в ячейках игрового поля. 
 		public Field(int width, int height, ICellArray cellArray)
 		{
-			this.height = (short)(height & 0x7fff);
-			this.width = (short)(width & 0x7fff);
+			this.height = height;
+			this.width = width;
 
 			Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
 			Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
@@ -166,7 +166,7 @@ namespace life
 		}
 
 		// Добавляем близлежащие клетки к активной в список активных клеток
-		public void AddNearestCells(short x, short y)
+		public void AddNearestCells(int x, int y)
 		{
 			foreach (FieldLocation i in Dxy)
 			{
@@ -189,7 +189,7 @@ namespace life
 		}
 
 		// - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
-		public int NumberLiveCells(short x, short y)
+		public int NumberLiveCells(int x, int y)
 		{
 
 			int count = 0;   // счётчик живых ячеек вокруг данной

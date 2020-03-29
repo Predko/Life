@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
+using System.IO;
 using System.Windows.Forms;
 
 namespace life
@@ -13,19 +13,17 @@ namespace life
         private readonly IContainer components = null;
 
         private Button btnStartStop;
-        private const string name_btnStartStop = "btnStartStop";
 
         private Button btnMakeAStep;
-        private const string name_btnMakeAStep = "btnDoStep";
 
         private Button btnPreviousStep;
-        private const string name_btnPreviousStep = "btnPreviousStep";
 
         private Button btnSaveField;
-        private const string name_btnSaveField = "btnSaveField";
 
         private Button btnLoadField;
-        private const string name_btnLoadField = "btnLoadField";
+
+        private OpenFileDialog openFileDialog;
+        private SaveFileDialog saveFileDialog;
 
         private const string text_start = "Start";
         private const string text_stop = "Stop";
@@ -97,56 +95,56 @@ namespace life
                 Location = new Point(2, 2),
                 Text = text_start,
                 AutoSize = true,
-                Name = name_btnStartStop,
+                Name = "btnStartStop",
                 TabIndex = 1
             };
 
-            btnStartStop.Click += Btn_Click;
+            btnStartStop.Click += BtnStartStop_Click;
 
             btnMakeAStep = new Button
             {
                 Location = new Point(btnStartStop.Location.X + btnStartStop.Size.Width + 10, 2),
                 Text = "Make a step",
                 AutoSize = true,
-                Name = name_btnMakeAStep,
+                Name = "MakeAStep",
                 TabIndex = 2
             };
 
-            btnMakeAStep.Click += Btn_Click;
+            btnMakeAStep.Click += BtnMakeAStep_Click;
 
             btnPreviousStep = new Button
             {
                 Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
                 Text = "Previous step",
                 AutoSize = true,
-                Name = name_btnPreviousStep,
+                Name = "PreviousStep",
                 TabIndex = 3,
                 Enabled = false
             };
 
-            btnPreviousStep.Click += Btn_Click;
+            btnPreviousStep.Click += BtnPreviousStep_Click;
 
             btnSaveField = new Button
             {
                 Location = new Point(btnPreviousStep.Location.X + btnPreviousStep.Size.Width + 10, 2),
                 Text = "Save Field",
                 AutoSize = true,
-                Name = name_btnSaveField,
+                Name = "SaveField",
                 TabIndex = 4
             };
 
-            btnSaveField.Click += Btn_Click;
+            btnSaveField.Click += BtnSaveField_Click;
 
             btnLoadField = new Button
             {
                 Location = new Point(btnSaveField.Location.X + btnSaveField.Size.Width + 10, 2),
                 Text = "Load Field",
                 AutoSize = true,
-                Name = name_btnLoadField,
+                Name = "LoadField",
                 TabIndex = 5
             };
 
-            btnLoadField.Click += Btn_Click;
+            btnLoadField.Click += BtnLoadField_Click;
 
             lbCount = new Label()
             {
@@ -165,6 +163,19 @@ namespace life
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             DoubleBuffered = true;
+
+            openFileDialog = new OpenFileDialog()
+            {
+                Filter = "*.save|*.save|*.life|*.life",
+                InitialDirectory = Directory.GetCurrentDirectory()
+            };
+
+            saveFileDialog = new SaveFileDialog()
+            {
+                Filter = "*.save|*.save|*.life|*.life",
+                OverwritePrompt = true,
+                InitialDirectory = Directory.GetCurrentDirectory()
+            };
 
             Controls.Add(btnStartStop);
             Controls.Add(btnMakeAStep);
