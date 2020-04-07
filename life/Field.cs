@@ -4,6 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Text;
+using System.Resources;
+using life.Properties;
 
 namespace life
 {
@@ -55,9 +57,13 @@ namespace life
 
 		public Bitmap bitmap;
 		public Bitmap bitmapCellYesNo;
+		public Bitmap CellBitmap;
+		public Bitmap CellStaticBitmap;
 
 		public Rectangle rectCellYes;
 		public Rectangle rectCellNo;
+
+		public Rectangle rectCellBitmap;
 
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
@@ -90,6 +96,10 @@ namespace life
 			field = cellArray ?? new BinaryTreeCells();
 
 			steps = new LogOfSteps("steps.log", this);
+
+			CellBitmap = Resources.Cell_7;
+			CellStaticBitmap = Resources.Cell_12;
+
 		}
 
 
@@ -114,12 +124,14 @@ namespace life
 
 		public bool IsLogEmpty() => steps.IsBegin();
 
-		private void DrawFieldToBitmap()
+		public virtual void DrawFieldToBitmap()
 		{
 			Graphics g = Graphics.FromImage(bitmapCellYesNo);
 
 			rectCellYes = new Rectangle(0, 0, CellSize.Width - 2, CellSize.Height - 2);
 			rectCellNo = new Rectangle(CellSize.Width - 2, 0, CellSize.Width - 2, CellSize.Height - 2);
+
+			rectCellBitmap = new Rectangle(0, 0, 199, 199);
 
 			g.FillRectangle(brushCellYes, rectCellYes);
 

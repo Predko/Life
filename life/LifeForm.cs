@@ -34,8 +34,8 @@ namespace life
 
         private Field field;            // игровое поле
 
-        private int fieldX = 80;        // Размер поля 
-        private int fieldY = 50;        // в ячейках
+        private int fieldX = 40;        // Размер поля 
+        private int fieldY = 30;        // в ячейках
 
         private const int x0 = 0;
         private int y0;                 // координата Y начала игрового поля
@@ -155,14 +155,14 @@ namespace life
             };
 
             y0 = btnStartStop.Location.Y + btnStartStop.Size.Height + 2;
-            
-            ClientSize = new Size(800, 450);
+
             Text = "Life";
             BackColor = SystemColors.Window;
             ResizeRedraw = true;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             DoubleBuffered = true;
+
 
             openFileDialog = new OpenFileDialog()
             {
@@ -194,7 +194,7 @@ namespace life
 
             timer = new Timer
             {
-                Interval = 50
+                Interval = 200
             };
 
             timer.Tick += Timer_Tick;
@@ -211,6 +211,16 @@ namespace life
 
         private void InitField()
         {
+            Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
+
+            Size = new Size(workingArea.Width - 10, workingArea.Height - 10);
+
+            int cellSize = 20;
+
+            fieldY = (int)Math.Floor((decimal)(ClientSize.Height - y0) / cellSize);
+
+            fieldX = (int)Math.Floor((decimal)(ClientSize.Width - x0) / cellSize);
+
             field = new Field(fieldX, fieldY, new CellArray(fieldX, fieldY));
 
             field.EnterCells();
@@ -225,8 +235,7 @@ namespace life
         // Корректируем размер рабочей области формы кратно размерам поля
         private void SetSizeFormAndField()
         {
-            int cellSize = Math.Min((int)Math.Ceiling((decimal)(ClientSize.Width - x0) / fieldX),
-                               (int)Math.Ceiling((decimal)(ClientSize.Height - y0) / fieldY));
+            int cellSize = 20;
 
             Rectangle fieldRectangle = new Rectangle(x0, y0, cellSize * fieldX, cellSize * fieldY);
 
@@ -236,12 +245,14 @@ namespace life
                 Height = y0 + fieldRectangle.Height
             };
 
+            StartPosition = FormStartPosition.CenterScreen;
+
             field.rectangle = fieldRectangle;
 
             field.CellSize = new Size(cellSize, cellSize);   // размер ячейки
 
             field.brushCellYes = Brushes.DarkGreen;
-            field.brushCellNo = Brushes.LightGray;
+            field.brushCellNo = Brushes.LightSteelBlue;
 
             field.InitBitmap();
         }

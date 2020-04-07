@@ -36,7 +36,9 @@ namespace life
 		public StatusCell Status { get; set; }		// есть клетка или нет
 		public StatusCell NewStatus { get; set; }	// есть клетка или нет
 		public Field field;
-		public FieldLocation Location { get; set; }		// координаты ячейки на поле Field
+		public FieldLocation Location { get; set; }     // координаты ячейки на поле Field
+
+		private Bitmap bitmap;	// изображение клетки
 
 		public bool active;             // активная ячейка(true)- добавлена в список событий
 		public bool isStaticCell;       // Статическая(неизменная) ячейка. В список событий не добавляется
@@ -167,17 +169,27 @@ namespace life
 		public virtual void Draw(Graphics g)
 		{
 			// Координаты точки для отрисовки
-			int X = Location.X * field.CellSize.Width + 1;
-			int Y = Location.Y * field.CellSize.Height + 1;
+			//int X = Location.X * field.CellSize.Width + 1;
+			//int Y = Location.Y * field.CellSize.Height + 1;
+
+			Rectangle rectdest = new Rectangle()
+			{
+				X = Location.X * field.CellSize.Width + 1,
+				Y = Location.Y * field.CellSize.Height + 1,
+				Width = field.rectCellYes.Width,
+				Height = field.rectCellYes.Height
+			};
 
 			if (Status == StatusCell.Yes)
 			{
-				g.DrawImage(field.bitmapCellYesNo, X, Y, field.rectCellYes, GraphicsUnit.Pixel);
+				Bitmap bm = (isStaticCell) ? field.CellStaticBitmap : field.CellBitmap;
+
+				g.DrawImage(bm, rectdest, field.rectCellBitmap, GraphicsUnit.Pixel);
 			}
 			else
 			if (Status == StatusCell.No)
 			{
-				g.DrawImage(field.bitmapCellYesNo, X, Y, field.rectCellNo, GraphicsUnit.Pixel);
+				g.DrawImage(field.bitmapCellYesNo, rectdest.X, rectdest.Y, field.rectCellNo, GraphicsUnit.Pixel);
 			}
 		}
 

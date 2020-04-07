@@ -159,7 +159,10 @@ namespace life
                 }
             }
 
-            step.Remove(step.Length - 1, 1); // удаляем последний символ ";"
+            if (step.Length != 0)
+            {
+                step.Remove(step.Length - 1, 1); // удаляем последний символ ";"
+            }
 
             step.Insert(0, $"{count}:");
 
