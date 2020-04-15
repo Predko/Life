@@ -63,9 +63,9 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_10 {
+        internal static System.Drawing.Bitmap Cell1_01 {
             get {
-                object obj = ResourceManager.GetObject("Cell_10", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell1_01", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_11 {
+        internal static System.Drawing.Bitmap Cell1_02 {
             get {
-                object obj = ResourceManager.GetObject("Cell_11", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell1_02", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_12 {
+        internal static System.Drawing.Bitmap Cell1_03 {
             get {
-                object obj = ResourceManager.GetObject("Cell_12", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell1_03", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,9 +93,9 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_6 {
+        internal static System.Drawing.Bitmap Cell1_04 {
             get {
-                object obj = ResourceManager.GetObject("Cell_6", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell1_04", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -103,9 +103,9 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_7 {
+        internal static System.Drawing.Bitmap Cell2_08_1 {
             get {
-                object obj = ResourceManager.GetObject("Cell_7", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell2_08_1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -113,9 +113,159 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Cell_8 {
+        internal static System.Drawing.Bitmap Cell2_08_2 {
             get {
-                object obj = ResourceManager.GetObject("Cell_8", resourceCulture);
+                object obj = ResourceManager.GetObject("Cell2_08_2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_08_3 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_08_3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_08_4 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_08_4", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_08_5 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_08_5", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_08_6 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_08_6", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_08_7 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_08_7", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_1 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_2 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_3 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_4 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_4", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_5 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_5", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_6 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_6", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_7 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_7", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_8 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_8", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cell2_09_9 {
+            get {
+                object obj = ResourceManager.GetObject("Cell2_09_9", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap cellComboBoxArrows {
+            get {
+                object obj = ResourceManager.GetObject("cellComboBoxArrows", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

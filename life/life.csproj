@@ -46,6 +46,9 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\portable-net40+sl4+win8+wp8\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq">
@@ -55,19 +58,22 @@
   <ItemGroup>
     <Compile Include="CellArray.cs" />
     <Compile Include="BinaryTreeCells.cs" />
+    <Compile Include="CellsComboBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ICellArray.cs" />
+    <Compile Include="Labels.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LifeEvents.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Cell.cs" />
     <Compile Include="Field.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="LifeForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="LifeForm.cs">
+    <Compile Include="Buttons.cs.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="LogOfSteps.cs" />
@@ -83,34 +89,89 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_9.png" />
+    <None Include="packages.config" />
+    <None Include="Picture\Cell2_01.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Cell07PNG.bmp" />
+    <None Include="Picture\Cell2_03.PNG" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_7.png" />
+    <None Include="Picture\Cell2_02.PNG" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_12.png" />
+    <None Include="Picture\Cell2_04.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_8.png" />
+    <None Include="Picture\Cell2_6.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_10.png" />
+    <None Include="Picture\Cell2_5.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Picture\Cell_6.png" />
+    <None Include="Picture\Cell2_07.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_08_3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_8.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_09_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\cellComboBoxArrows.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\cellComboBoxArrows_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\cellComboBoxArrows_2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

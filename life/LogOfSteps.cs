@@ -9,9 +9,7 @@ namespace life
 {
     public class LogOfSteps
     {
-        private string fileName;
-
-        Field currentField;
+        readonly Field currentField;
 
         private readonly LinkedList<string> steps;
         private LinkedListNode<string> current;
@@ -22,10 +20,8 @@ namespace life
         /// </summary>
         /// <param name="filename">Имя файла для записи шагов</param>
         /// <param name="field">Текущее игровое поле</param>
-        public LogOfSteps(string filename, Field field)
+        public LogOfSteps(Field field)
         {
-            fileName = filename;
-
             currentField = field;
 
             steps = new LinkedList<string>();
@@ -44,12 +40,18 @@ namespace life
         public bool IsBegin() => (current == null);
 
         /// <summary>
-        /// Восстанавливает состояние ячеек на предыдущем ходу
+        /// 
         /// cells - состояние ячеек на текущем ходу
         /// Возвращает изменённый список
         /// </summary>
         /// <param name="currentCells"></param>
         /// <returns></returns>
+
+        /// <summary>
+        /// Восстанавливает состояние ячеек на предыдущем ходу
+        /// </summary>
+        /// <param name="currentListCells">Список ячеек на текущем ходе</param>
+        /// <returns>false - если не удалось выполнить операцию</returns>
         public bool Previous(List<Cell> currentListCells)
         {
             // Проверяем не пуст ли лог
@@ -64,6 +66,9 @@ namespace life
             if (cellsFromLog == null)
             {
                 MessageBox.Show("Не удалось извлечь данные из истории");
+                
+                Clear();
+                
                 return false;
             }
 
@@ -84,6 +89,8 @@ namespace life
                     {
                         MessageBox.Show("Не соответствие истории и текущих ячеек");
 
+                        Clear();
+                        
                         return false;
                     }
 
@@ -172,8 +179,9 @@ namespace life
         }
 
         /// <summary>
-        /// Возвращает список ячеек cells изменённых в current.Value
-        /// cell.NewStatus - изменения иячейки
+        /// Возвращает список ячеек cells изменённых на предыдущем ходу.
+        /// Если не было изменений, возвращает пустой список.
+        /// null - если была ошибка
         /// </summary>
         /// <returns></returns>
         private List<Cell> GetStep()
@@ -184,13 +192,13 @@ namespace life
 
             try
             {
+                cells = new List<Cell>();
+
                 int count = int.Parse(step[0]);
                 if (count == 0)
                 {
-                    return null;
+                    return cells;
                 }
-
-                cells = new List<Cell>();
 
                 for (int i = 1; (i - 1) / 2 < count; i += 2)
                 {
@@ -221,6 +229,7 @@ namespace life
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + "\nprivate List<Cell> GetStep()");
+                return null;
             }
 
 

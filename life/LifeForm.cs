@@ -1,10 +1,13 @@
-﻿using System;
+﻿using life.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+using System.Globalization;
 using System.Drawing;
 using System.IO;
+using System.Resources;
 using System.Windows.Forms;
+using System.Collections;
 
 namespace life
 {
@@ -12,35 +15,22 @@ namespace life
     {
         private readonly IContainer components = null;
 
-        private Button btnStartStop;
-
-        private Button btnMakeAStep;
-
-        private Button btnPreviousStep;
-
-        private Button btnSaveField;
-
-        private Button btnLoadField;
-
         private OpenFileDialog openFileDialog;
         private SaveFileDialog saveFileDialog;
 
-        private const string text_start = "Start";
-        private const string text_stop = "Stop";
-
-        Label lbCount;
-
-        private int count;      // счётчик ходов
-
         private Field field;            // игровое поле
 
-        private int fieldX = 40;        // Размер поля 
-        private int fieldY = 30;        // в ячейках
+        private int fieldX;        // Размер поля 
+        private int fieldY;        // в ячейках
+
+        private int cellSize = 25;      // размер клетки в пикселах
 
         private const int x0 = 0;
         private int y0;                 // координата Y начала игрового поля
 
         private Timer timer;            // 
+
+        private int count;      // счётчик ходов
 
         public int Count
         {
@@ -90,71 +80,28 @@ namespace life
 
             AutoSize = true;
 
-            btnStartStop = new Button
+            openFileDialog = new OpenFileDialog()
             {
-                Location = new Point(2, 2),
-                Text = text_start,
-                AutoSize = true,
-                Name = "btnStartStop",
-                TabIndex = 1
+                Filter = "*.life|*.life|*.save|*.save",
+                InitialDirectory = Directory.GetCurrentDirectory()
             };
 
-            btnStartStop.Click += BtnStartStop_Click;
-
-            btnMakeAStep = new Button
+            saveFileDialog = new SaveFileDialog()
             {
-                Location = new Point(btnStartStop.Location.X + btnStartStop.Size.Width + 10, 2),
-                Text = "Make a step",
-                AutoSize = true,
-                Name = "MakeAStep",
-                TabIndex = 2
+                Filter = "*.life|*.life|*.save|*.save",
+                OverwritePrompt = true,
+                InitialDirectory = Directory.GetCurrentDirectory()
             };
 
-            btnMakeAStep.Click += BtnMakeAStep_Click;
+            InitButtons();
 
-            btnPreviousStep = new Button
-            {
-                Location = new Point(btnMakeAStep.Location.X + btnMakeAStep.Size.Width + 10, 2),
-                Text = "Previous step",
-                AutoSize = true,
-                Name = "PreviousStep",
-                TabIndex = 3,
-                Enabled = false
-            };
+            InitLabels();
 
-            btnPreviousStep.Click += BtnPreviousStep_Click;
+            InitCellsComboBox(25);
 
-            btnSaveField = new Button
-            {
-                Location = new Point(btnPreviousStep.Location.X + btnPreviousStep.Size.Width + 10, 2),
-                Text = "Save Field",
-                AutoSize = true,
-                Name = "SaveField",
-                TabIndex = 4
-            };
+            //cellsComboBox.Size = new Size(szbm.Width + 10, szbm.Height);
 
-            btnSaveField.Click += BtnSaveField_Click;
-
-            btnLoadField = new Button
-            {
-                Location = new Point(btnSaveField.Location.X + btnSaveField.Size.Width + 10, 2),
-                Text = "Load Field",
-                AutoSize = true,
-                Name = "LoadField",
-                TabIndex = 5
-            };
-
-            btnLoadField.Click += BtnLoadField_Click;
-
-            lbCount = new Label()
-            {
-                Location = new Point(btnLoadField.Location.X + btnLoadField.Size.Width + 10, 2),
-                Text = "Step: ",
-                AutoSize = true,
-                Name = nameof(lbCount)
-            };
-
-            y0 = btnStartStop.Location.Y + btnStartStop.Size.Height + 2;
+            y0 = 2 + cellsComboBox.ItemHeight + 10;
 
             Text = "Life";
             BackColor = SystemColors.Window;
@@ -163,32 +110,8 @@ namespace life
             MaximizeBox = false;
             DoubleBuffered = true;
 
-
-            openFileDialog = new OpenFileDialog()
-            {
-                Filter = "*.save|*.save|*.life|*.life",
-                InitialDirectory = Directory.GetCurrentDirectory()
-            };
-
-            saveFileDialog = new SaveFileDialog()
-            {
-                Filter = "*.save|*.save|*.life|*.life",
-                OverwritePrompt = true,
-                InitialDirectory = Directory.GetCurrentDirectory()
-            };
-
-            Controls.Add(btnStartStop);
-            Controls.Add(btnMakeAStep);
-            Controls.Add(btnPreviousStep);
-            Controls.Add(btnSaveField);
-            Controls.Add(btnLoadField);
-            Controls.Add(lbCount);
-
             AutoScaleDimensions = new SizeF(6f, 13f);
             AutoScaleMode = AutoScaleMode.Font;
-
-            // Корректируем положение lbCount по Y - по оси кнопок
-            lbCount.Location = new Point(lbCount.Location.X, btnMakeAStep.Location.Y + btnMakeAStep.Size.Height / 2 - lbCount.Size.Height / 2);
 
             ResumeLayout(false);
 
@@ -209,19 +132,19 @@ namespace life
             InitField();
         }
 
+        /// <summary>
+        /// Инициализация игрового поля
+        /// </summary>
         private void InitField()
         {
-            Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
-
-            Size = new Size(workingArea.Width - 10, workingArea.Height - 10);
-
-            int cellSize = 20;
-
+            SetMaxFormSize();
+            
             fieldY = (int)Math.Floor((decimal)(ClientSize.Height - y0) / cellSize);
 
             fieldX = (int)Math.Floor((decimal)(ClientSize.Width - x0) / cellSize);
 
-            field = new Field(fieldX, fieldY, new CellArray(fieldX, fieldY));
+            field = new Field(fieldX, fieldY, new CellArray(fieldX, fieldY), (Bitmap)cellsComboBox.SelectedItem, (Bitmap)staticCellsComboBox.SelectedItem);
+            //Resources.Cell2_08_6, Resources.Cell2_08_1);
 
             field.EnterCells();
 
@@ -232,11 +155,21 @@ namespace life
             field.Draw();
         }
 
-        // Корректируем размер рабочей области формы кратно размерам поля
+        /// <summary>
+        /// Устанавливает максимальные размеры формы
+        /// </summary>
+        private void SetMaxFormSize()
+        {
+            Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
+
+            Size = new Size(workingArea.Width - 10, workingArea.Height - 10);
+        }
+
+        /// <summary>
+        /// Корректируем размер рабочей области формы кратно размерам поля
+        /// </summary>
         private void SetSizeFormAndField()
         {
-            int cellSize = 20;
-
             Rectangle fieldRectangle = new Rectangle(x0, y0, cellSize * fieldX, cellSize * fieldY);
 
             ClientSize = new Size()
@@ -249,13 +182,43 @@ namespace life
 
             field.rectangle = fieldRectangle;
 
-            field.CellSize = new Size(cellSize, cellSize);   // размер ячейки
-
-            field.brushCellYes = Brushes.DarkGreen;
-            field.brushCellNo = Brushes.LightSteelBlue;
+            field.CellSize = cellSize;   // размер ячейки
 
             field.InitBitmap();
         }
 
+        /// <summary>
+        /// Загрузка игрового поля с изменением размера ячейки
+        /// </summary>
+        private void LoadField()
+        {
+            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            var (dx, dy) = field.Load(openFileDialog.FileName);
+
+            fieldX = dx;
+            fieldY = dy;
+
+            SetMaxFormSize();
+            
+            dx = (int)Math.Floor((decimal)(ClientSize.Width - x0) / fieldX);
+
+            dy = (int)Math.Floor((decimal)(ClientSize.Height - y0) / fieldY);
+
+            cellSize = (dx >  dy) ? dy : dx;
+
+            field.DisposeBitmaps((Bitmap)cellsComboBox.SelectedItem, (Bitmap)staticCellsComboBox.SelectedItem);
+
+            SetSizeFormAndField();
+           
+            field.Draw();
+
+            btnPreviousStep.Enabled = false;
+
+            Count = 0;
+        }
     }
 }

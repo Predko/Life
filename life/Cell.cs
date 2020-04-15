@@ -169,27 +169,19 @@ namespace life
 		public virtual void Draw(Graphics g)
 		{
 			// Координаты точки для отрисовки
-			//int X = Location.X * field.CellSize.Width + 1;
-			//int Y = Location.Y * field.CellSize.Height + 1;
+			int x = Location.X * field.CellSize;
+			int y = Location.Y * field.CellSize;
 
-			Rectangle rectdest = new Rectangle()
-			{
-				X = Location.X * field.CellSize.Width + 1,
-				Y = Location.Y * field.CellSize.Height + 1,
-				Width = field.rectCellYes.Width,
-				Height = field.rectCellYes.Height
-			};
+			Bitmap bm = (isStaticCell) ? field.CellStaticBitmap : field.CellBitmap;
 
 			if (Status == StatusCell.Yes)
 			{
-				Bitmap bm = (isStaticCell) ? field.CellStaticBitmap : field.CellBitmap;
-
-				g.DrawImage(bm, rectdest, field.rectCellBitmap, GraphicsUnit.Pixel);
+				g.DrawImage(bm, x, y, field.rectCellYes, GraphicsUnit.Pixel);
 			}
 			else
 			if (Status == StatusCell.No)
 			{
-				g.DrawImage(field.bitmapCellYesNo, rectdest.X, rectdest.Y, field.rectCellNo, GraphicsUnit.Pixel);
+				g.DrawImage(bm, x, y, field.rectCellNo, GraphicsUnit.Pixel);
 			}
 		}
 

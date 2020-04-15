@@ -17,10 +17,7 @@ namespace life
         
         public CellArray(int x, int y)
         {
-            cells = new Cell[x, y];
-            Count = 0;
-            width = x;
-            height = y;
+            Resize(x, y);
         }
         
         public Cell this[int x, int y]
@@ -139,6 +136,14 @@ namespace life
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public void Resize(int dx, int dy)
+        {
+            cells = new Cell[dx, dy];
+            Count = 0;
+            width = dx;
+            height = dy;
         }
     }
 }

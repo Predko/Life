@@ -47,12 +47,16 @@ namespace life
                 return;
             }
 
-            if (!field.PreviousStep()) // если лог пуст, делаем неактивной кнопку 
+            if (!field.PreviousStep()) // если лог пуст или была ошибка, делаем неактивной кнопку 
             {
                 btnPreviousStep.Enabled = false;
-            }
 
-            Count--;
+                Count = 0;
+            }
+            else
+            {
+                Count--;
+            }
 
             Invalidate();
         }
@@ -69,19 +73,8 @@ namespace life
 
         private void BtnLoadField_Click(object sender, EventArgs e)
         {
-            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
-            {
-                return;
-            }
-
-            field.Load(openFileDialog.FileName);
-
-            field.Draw();
-
-            btnPreviousStep.Enabled = false;
-
-            Count = 0;
-
+            LoadField();
+            
             Invalidate();
         }
 

@@ -11,5 +11,6 @@ namespace life
         void Add(Cell cell);
         void Remove(Cell cell);
         void Clear();
+        void Resize(int dx, int dy);
     }
 }

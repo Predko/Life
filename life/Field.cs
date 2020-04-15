@@ -44,26 +44,20 @@ namespace life
 	// Игровое поле
 	public class Field:IDisposable
 	{
-		private readonly int width;
-		private readonly int height;
+		private int width;
+		private int height;
 
-		public Size CellSize { get; set; }
+		public int CellSize { get; set; }
 		public Rectangle rectangle { get; set; }
-
-		public Brush brushCellYes;
-		public Brush brushCellNo;
 
 		Graphics bitmapGraphics;
 
 		public Bitmap bitmap;
-		public Bitmap bitmapCellYesNo;
 		public Bitmap CellBitmap;
 		public Bitmap CellStaticBitmap;
 
 		public Rectangle rectCellYes;
 		public Rectangle rectCellNo;
-
-		public Rectangle rectCellBitmap;
 
 		// массив координат ячеек вокруг данной
 		private readonly FieldLocation[] Dxy = new FieldLocation[8];
@@ -79,7 +73,7 @@ namespace life
 
 
 		// Длина и ширина в ячейках игрового поля. 
-		public Field(int width, int height, ICellArray cellArray)
+		public Field(int width, int height, ICellArray cellArray, Bitmap normalCell, Bitmap staticCell, int cellSize = 15)
 		{
 			this.height = height;
 			this.width = width;
@@ -95,23 +89,60 @@ namespace life
 
 			field = cellArray ?? new BinaryTreeCells();
 
-			steps = new LogOfSteps("steps.log", this);
+			steps = new LogOfSteps(this);
 
-			CellBitmap = Resources.Cell_7;
-			CellStaticBitmap = Resources.Cell_12;
+			CellBitmap = normalCell;
+			CellStaticBitmap = staticCell;
 
+			CellSize = cellSize;
 		}
 
-
-
-		public void InitBitmap()
+		internal void DisposeBitmaps(Bitmap normalCell, Bitmap staticCell)
 		{
+			if (bitmap != null)
+			{
+				bitmap.Dispose();
+			}
+
+			CellBitmap.Dispose();
+
+			CellBitmap = normalCell;
+
+			CellStaticBitmap.Dispose();
+
+			CellStaticBitmap = staticCell;
+		}
+
+		internal void BitmapCellChanged(Bitmap bmcell)
+		{
+			CellBitmap.Dispose();
+
+			CellBitmap = bmcell;
+
+			CellBitmap = new Bitmap(CellBitmap, new Size(CellSize * 2, CellSize));
+		}
+
+		internal void BitmapStaticCellChanged(Bitmap bmcell)
+		{
+			CellStaticBitmap.Dispose();
+
+			CellStaticBitmap = bmcell;
+
+			CellStaticBitmap = new Bitmap(CellStaticBitmap, new Size(CellSize * 2, CellSize));
+		}
+
+		internal void InitBitmap()
+		{
+
 			bitmap = new Bitmap(rectangle.Width, rectangle.Height);
 
+			if ( bitmapGraphics != null)
+			{
+				bitmapGraphics.Dispose();
+			}
+			
 			bitmapGraphics = Graphics.FromImage(bitmap);
 			
-			bitmapCellYesNo = new Bitmap((CellSize.Width - 2) * 2, CellSize.Height - 2);
-
 			DrawFieldToBitmap();
 		}
 
@@ -126,24 +157,24 @@ namespace life
 
 		public virtual void DrawFieldToBitmap()
 		{
-			Graphics g = Graphics.FromImage(bitmapCellYesNo);
+			Size szbm = new Size(CellSize * 2, CellSize);
 
-			rectCellYes = new Rectangle(0, 0, CellSize.Width - 2, CellSize.Height - 2);
-			rectCellNo = new Rectangle(CellSize.Width - 2, 0, CellSize.Width - 2, CellSize.Height - 2);
+			CellBitmap = new Bitmap(CellBitmap, szbm);
+			CellStaticBitmap = new Bitmap(CellStaticBitmap, szbm);
 
-			rectCellBitmap = new Rectangle(0, 0, 199, 199);
+			rectCellYes = new Rectangle(0, 0, CellBitmap.Width / 2, CellBitmap.Height);
+			rectCellNo = new Rectangle(CellBitmap.Width / 2, 0, CellBitmap.Width / 2, CellBitmap.Height);
 
-			g.FillRectangle(brushCellYes, rectCellYes);
+			DrawAll();
+		}
 
-			g.FillRectangle(brushCellNo, rectCellNo);
-
-			g.Dispose();
-
+		public void DrawAll()
+		{
 			for (int y = 0; y < height; y++)
 			{
 				for (int x = 0; x < width; x++)
 				{
-					bitmapGraphics.DrawImage(bitmapCellYesNo, x * CellSize.Width + 1, y * CellSize.Height + 1, rectCellNo, GraphicsUnit.Pixel);
+					bitmapGraphics.DrawImage(CellBitmap, x * CellSize, y * CellSize, rectCellNo, GraphicsUnit.Pixel);
 				}
 			}
 		}
@@ -327,7 +358,7 @@ namespace life
 		/// <summary>
 		/// Сохраняет текущее поле в файл
 		/// Формат текстового файла:
-		/// {Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
+		/// {width},{height},{Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
 		/// </summary>
 		/// <param name="fileName"></param>
 		public void Save(string fileName = null)
@@ -351,7 +382,7 @@ namespace life
 						}
 					}
 					
-					writer.Write($"{count}:");
+					writer.Write($"{width},{height},{count}:");
 
 					foreach (var cell in field)
 					{
@@ -373,7 +404,7 @@ namespace life
 		/// Загружает игровое поле из файла
 		/// </summary>
 		/// <param name="fileName"></param>
-		public void Load(string fileName = null)
+		public (int dx, int dy) Load(string fileName = null)
 		{
 			if (fileName == null)
 			{
@@ -385,6 +416,17 @@ namespace life
 				try
 				{
 					Clear();
+
+					int dx = ReadInt(reader);
+					int dy = ReadInt(reader);
+
+					if ( dx != width && dy != height)
+					{
+						field.Resize(dx, dy);
+
+						width = dx;
+						height = dy;
+					}
 					
 					int count = ReadInt(reader);
 					
@@ -400,10 +442,10 @@ namespace life
 				catch (Exception ex)
 				{
 					MessageBox.Show(ex.Message + "\npublic void Field::Load(string fileName)");
-
-					return;
 				}
 			}
+
+			return (width, height);
 		}
 
 		/// <summary>
@@ -561,7 +603,7 @@ namespace life
 
 			//GospersGliderGun(5, 5); // Ружьё Госпера
 
-			//DiagonalSpaceShip(width - 50, height - 30); // Диагональный корабль
+			//DiagonalSpaceShip(width - 30, height - 30); // Диагональный корабль
 		}
 
 		private void SetBorderCells()

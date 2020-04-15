@@ -338,5 +338,11 @@ namespace life
         {
             return GetEnumerator();
         }
+
+        public void Resize(int dx, int dy)
+        {
+            rootNode = null;
+            count = 0;
+        }
     }
 }
