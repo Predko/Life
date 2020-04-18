@@ -173,5 +173,65 @@
   <ItemGroup>
     <None Include="Picture\cellComboBoxArrows_2.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_8.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_01_9.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_8.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\Cell2_02_9.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\cell2_x_01.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Picture\cell2_x_02.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

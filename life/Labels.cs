@@ -15,7 +15,6 @@ namespace life
         {
             lbCount = new Label()
             {
-                //Location = new Point(btnLoadField.Location.X + btnLoadField.Size.Width + 10, 2),
                 Text = "Step: 00000",
                 TextAlign = ContentAlignment.MiddleCenter,
                 AutoSize = true,

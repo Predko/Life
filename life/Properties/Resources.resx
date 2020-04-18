@@ -130,6 +130,60 @@
   <data name="Cell1_04" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Picture\Cell2_04.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Cell2_01_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_01_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_01_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_4" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_6" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_6.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_7" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_7.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_8" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_8.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cell2_02_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\Cell2_02_9.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Cell2_08_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Picture\Cell2_08_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -178,7 +232,10 @@
   <data name="Cell2_09_9" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Picture\Cell2_09_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="cellComboBoxArrows" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Picture\cellComboBoxArrows.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="cell2_x_01" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\cell2_x_01.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cell2_x_02" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Picture\cell2_x_02.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
