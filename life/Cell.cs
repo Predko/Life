@@ -21,12 +21,10 @@ namespace life
 	public class CellEvent 
 	{
 		public Calccmd cmd;
-		public Graphics G { get; private set; }
 
-		public CellEvent(Calccmd c, Graphics g = null)
+		public CellEvent(Calccmd c)
 		{
 			cmd = c;
-			G = g;
 		}
 	}
 

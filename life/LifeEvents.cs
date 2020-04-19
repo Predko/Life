@@ -37,7 +37,7 @@ namespace life
 
             btnPreviousStep.Enabled = true;
 
-            Invalidate();
+            panelField.Invalidate();
         }
 
         private void BtnPreviousStep_Click(object sender, EventArgs e)
@@ -58,7 +58,7 @@ namespace life
                 Count--;
             }
 
-            Invalidate();
+            panelField.Invalidate();
         }
 
         private void BtnSaveField_Click(object sender, EventArgs e)
@@ -74,8 +74,8 @@ namespace life
         private void BtnLoadField_Click(object sender, EventArgs e)
         {
             LoadField();
-            
-            Invalidate();
+
+            panelField.Invalidate();
         }
 
         private void LifeForm_KeyUp(object sender, KeyEventArgs e)
@@ -94,7 +94,7 @@ namespace life
 
                 Count++;
 
-                Invalidate();
+                panelField.Invalidate();
             }
             else
             if (e.KeyCode == Keys.Escape)
@@ -109,9 +109,9 @@ namespace life
 
             Count++;
 
-            lbCount.Text = $"Step: {Count}";
+            lbCount.Text = $"Step: {Count,5:d}";
 
-            Invalidate();
+            panelField.Invalidate();
         }
     }
 }

@@ -13,9 +13,7 @@ namespace life
 {
     public partial class LifeForm : Form
     {
-        private CellsComboBox cellsComboBox;
-
-        private CellsComboBox staticCellsComboBox;
+        Rectangle rectBitmap;
 
         public void InitCellsComboBox(int cellSize)
         {
@@ -23,35 +21,21 @@ namespace life
 
             ResourceSet rs = temp.GetResourceSet(CultureInfo.CurrentCulture, true, true);
 
-            Size szbm = new Size(cellSize * 2, cellSize);
+            rectBitmap = new Rectangle(0, 0, cellSize * 2, cellSize);
 
-            cellsComboBox = new CellsComboBox(new Rectangle(0, 0, szbm.Width, szbm.Height))
-            {
-                Location = new Point(lbCount.Location.X + lbCount.Size.Width + 10, 2),
-                Name = "CellsComboBox",
-                ItemHeight = szbm.Height + 4,
-                Width = szbm.Width + 27,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                DropDownHeight = (szbm.Height + 4) * 10,
-                DrawMode = DrawMode.OwnerDrawFixed
-            };
+            cellsComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            cellsComboBox.DropDownHeight = (rectBitmap.Height + 4) * 10;
+            cellsComboBox.DrawMode = DrawMode.OwnerDrawFixed;
 
-            staticCellsComboBox = new CellsComboBox(new Rectangle(0, 0, szbm.Width, szbm.Height))
-            {
-                Location = new Point(cellsComboBox.Location.X + cellsComboBox.Size.Width + 10, 2),
-                Name = "StaticCellsComboBox",
-                ItemHeight = szbm.Height + 4,
-                Width = szbm.Width + 27,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                DropDownHeight = (szbm.Height + 4) * 10,
-                DrawMode = DrawMode.OwnerDrawFixed
-            };
+            staticCellsComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            staticCellsComboBox.DropDownHeight = (rectBitmap.Height + 4) * 10;
+            staticCellsComboBox.DrawMode = DrawMode.OwnerDrawFixed;
 
             foreach (DictionaryEntry r in rs)
             {
                 if (r.Value.GetType() == typeof(Bitmap))
                 {
-                    var bmp = new Bitmap((Bitmap)r.Value, szbm);
+                    var bmp = new Bitmap((Bitmap)r.Value, rectBitmap.Size);
 
                     bmp.MakeTransparent(Color.Transparent);
 
@@ -61,20 +45,29 @@ namespace life
                 }
             }
 
-            if (cellsComboBox.Items.Count != 0)
-            {
-                Controls.Add(cellsComboBox);
-
-                cellsComboBox.SelectedIndex = 5;
+            cellsComboBox.SelectedIndex = 5;
                 
-                Controls.Add(staticCellsComboBox);
-
-                staticCellsComboBox.SelectedIndex = 2;
-            }
+            staticCellsComboBox.SelectedIndex = 2;
 
             cellsComboBox.SelectedIndexChanged += CellsComboBox_SelectedIndexChanged;
 
+            cellsComboBox.DrawItem += CellsComboBox_DrawItem;
+            
             staticCellsComboBox.SelectedIndexChanged += StaticCellsComboBox_SelectedIndexChanged;
+
+            staticCellsComboBox.DrawItem += CellsComboBox_DrawItem;
+        }
+
+        private void CellsComboBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            e.DrawBackground();
+
+            if (e.Index != -1)
+            {
+                e.Graphics.DrawImage((Bitmap)((ComboBox)sender).Items[e.Index], e.Bounds.Left + 2, e.Bounds.Top + 2, rectBitmap, GraphicsUnit.Pixel);
+            }
+
+            e.DrawFocusRectangle();
         }
 
         private void StaticCellsComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -87,7 +80,7 @@ namespace life
 
             field.Draw();
 
-            Invalidate();
+            panelField.Invalidate();
         }
 
         private void CellsComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -100,43 +93,7 @@ namespace life
 
             field.Draw();
 
-            Invalidate();
-        }
-    }
-
-
-    public class CellsComboBox : ComboBox
-    {
-        private Rectangle rectBitmap;
-        public Bitmap arrows { get; set; }
-
-        private int focusIndex = 0;
-        private ComboBox cb;
-
-        public CellsComboBox(Rectangle rbm) : base()
-        {
-            rectBitmap = rbm;
-            cb = this;
-        }
-
-        protected override void OnDrawItem(DrawItemEventArgs e)
-        {
-            e.DrawBackground();
-
-            if (e.Index != -1)
-            {
-                e.Graphics.DrawImage((Bitmap)Items[e.Index], e.Bounds.Left + 2, e.Bounds.Top + 2, rectBitmap, GraphicsUnit.Pixel);
-
-            //    if ((e.State & DrawItemState.Focus) == DrawItemState.Focus)
-            //    {
-            //        e.Graphics.DrawImage(arrows, e.Bounds.Left + 2, e.Bounds.Top + 2, rectBitmap, GraphicsUnit.Pixel);
-            //        //cb.Invalidate();
-            //    }
-            }
-
-            e.DrawFocusRectangle();
-
-            base.OnDrawItem(e);
+            panelField.Invalidate();
         }
     }
 }

@@ -48,7 +48,7 @@ namespace life
 		private int height;
 
 		public int CellSize { get; set; }
-		public Rectangle rectangle { get; set; }
+		public Rectangle Bounds { get; set; }
 
 		Graphics bitmapGraphics;
 
@@ -134,7 +134,7 @@ namespace life
 		internal void InitBitmap()
 		{
 
-			bitmap = new Bitmap(rectangle.Width, rectangle.Height);
+			bitmap = new Bitmap(Bounds.Width, Bounds.Height);
 
 			if ( bitmapGraphics != null)
 			{
@@ -185,9 +185,9 @@ namespace life
 		/// <param name="g"></param>
 		public void Redraw(Graphics g)
 		{
-			Rectangle rectsrc = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
+			Rectangle rectsrc = new Rectangle(0, 0, Bounds.Width, Bounds.Height);
 
-			g.DrawImage(bitmap, rectangle, rectsrc, GraphicsUnit.Pixel);
+			g.DrawImage(bitmap, Bounds, rectsrc, GraphicsUnit.Pixel);
 		}
 
 		public void Draw()
