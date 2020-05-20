@@ -16,11 +16,14 @@ namespace life
             panelField = new PanelField();
 
             tlPanel.Controls.Add(panelField, 0, 1);
-
-            panelField.Dock = DockStyle.Fill;
+            tlPanel.SetColumnSpan(panelField, 2);
             tlPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            panelField.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             panelField.Name = "panelField";
             panelField.TabIndex = 3;
+
+            panelField.Margin = Padding.Empty;
 
             panelField.Paint += PanelField_Paint;
         }
@@ -35,7 +38,7 @@ namespace life
 
     class PanelField : Panel
     {
-        public PanelField()
+        public PanelField():base()
         { 
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true); 
         }

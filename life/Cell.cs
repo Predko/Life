@@ -12,22 +12,7 @@ namespace life
 		void Draw(Graphics g);
 	}
 
-
-	public enum Calccmd { apply_changes, analysis_nextstep, del_calc_func, delete_not_active, draw };
-	public enum Cell_is { yes, no };
-
-	public enum StatusCell { Yes, No, Nil };
-
-	public class CellEvent 
-	{
-		public Calccmd cmd;
-
-		public CellEvent(Calccmd c)
-		{
-			cmd = c;
-		}
-	}
-
+	public enum StatusCell { Yes, No, Static };
 
 	public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
 	{
@@ -36,8 +21,6 @@ namespace life
 		public Field field;
 		public FieldLocation Location { get; set; }     // координаты ячейки на поле Field
 
-		private Bitmap bitmap;	// изображение клетки
-
 		public bool active;             // активная ячейка(true)- добавлена в список событий
 		public bool isStaticCell;       // Статическая(неизменная) ячейка. В список событий не добавляется
 
@@ -45,7 +28,7 @@ namespace life
 		{
 			field = fld;
 			Status = StatusCell.No;
-			NewStatus = StatusCell.Nil;
+			NewStatus = StatusCell.No;
 			isStaticCell = false;
 
 			SetCell();

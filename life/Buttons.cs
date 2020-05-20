@@ -13,6 +13,8 @@ namespace life
 
         protected void InitButtons()
         {
+            btnNewGame.Click += BtnNewGame_Click;
+            
             btnStartStop.Click += BtnStartStop_Click;
 
             btnMakeAStep.Click += BtnMakeAStep_Click;

@@ -56,11 +56,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Buttons.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="CellArray.cs" />
     <Compile Include="BinaryTreeCells.cs" />
     <Compile Include="CellsComboBox.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="EditField.cs" />
     <Compile Include="ExtentionMethods.cs" />
     <Compile Include="ICellArray.cs" />
     <Compile Include="LifeEvents.cs">
@@ -68,10 +72,10 @@
     </Compile>
     <Compile Include="Cell.cs" />
     <Compile Include="Field.cs" />
-    <Compile Include="LifeForm.cs">
+    <Compile Include="LifeFormMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Buttons.cs">
+    <Compile Include="LifeForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="LogOfSteps.cs" />
@@ -85,6 +89,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SettingField.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingField.Designer.cs">
+      <DependentUpon>SettingField.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -96,6 +106,9 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingField.resx">
+      <DependentUpon>SettingField.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

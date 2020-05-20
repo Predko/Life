@@ -5,6 +5,16 @@ namespace life
 {
     public partial class LifeForm : Form
     {
+        private void BtnNewGame_Click(object sender, EventArgs e)
+        {
+            if (settingField.ShowDialog() == DialogResult.OK)
+            {
+                NewField(settingField.SizeField.Width, settingField.SizeField.Height, 0.3f, settingField.IsBorder);
+
+                panelField.Invalidate();
+            }
+        }
+
         private void BtnStartStop_Click(object sender, EventArgs e)
         {
             if (btnStartStop.Text == text_start)
@@ -113,5 +123,19 @@ namespace life
 
             panelField.Invalidate();
         }
+
+        /// <summary>
+        /// Отслеживаем изменения позиции ползунка и изменяем значение TimerInterval
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HsbTimer_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (e.Type == ScrollEventType.ThumbTrack || e.Type == ScrollEventType.EndScroll)
+            {
+                SetTimerInterval(e.NewValue);
+            }
+        }
+
     }
 }

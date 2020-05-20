@@ -146,6 +146,9 @@ namespace life
 			DrawFieldToBitmap();
 		}
 
+		/// <summary>
+		/// Очистка игрового поля - очистка хранилища ячеек, очистка лога шагов
+		/// </summary>
 		public void Clear()
 		{
 			field.Clear();
@@ -190,6 +193,9 @@ namespace life
 			g.DrawImage(bitmap, Bounds, rectsrc, GraphicsUnit.Pixel);
 		}
 
+		/// <summary>
+		/// Отрисовка изменившихся клеток игрового поля
+		/// </summary>
 		public void Draw()
 		{
 			foreach(Cell cell in field)
@@ -198,8 +204,16 @@ namespace life
 			}
 		}
 
+		/// <summary>
+		/// Добавление клетки на игровое поле
+		/// </summary>
+		/// <param name="cell"></param>
 		public void AddCell(Cell cell) => field.Add(cell);
 
+		/// <summary>
+		/// Удаление клетки с игрового поля(кроме статичных клеток)
+		/// </summary>
+		/// <param name="cell"></param>
 		public void RemoveCell(Cell cell)
 		{
 			if (!cell.isStaticCell)	// не удаляем из списка статичные клетки
@@ -208,7 +222,11 @@ namespace life
 			}
 		}
 
-		// Добавляем близлежащие клетки к активной в список активных клеток
+		/// <summary>
+		/// Добавляем близлежащие клетки к данной в список активных клеток
+		/// </summary>
+		/// <param name="x">Координата x клетки</param>
+		/// <param name="y">Координата y клетки</param>
 		public void AddNearestCells(int x, int y)
 		{
 			foreach (FieldLocation i in Dxy)
@@ -232,6 +250,12 @@ namespace life
 		}
 
 		// - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
+		/// <summary>
+		/// Подсчёт живых ячеек вокруг данной.
+		/// </summary>
+		/// <param name="x">Координата x клетки</param>
+		/// <param name="y">Координата y клетки</param>
+		/// <returns>Число живых клеток, примыкающих к данной</returns>
 		public int NumberLiveCells(int x, int y)
 		{
 
@@ -283,7 +307,7 @@ namespace life
 
 				field.Clear();
 
-				EnterCells();
+				SettingCells();
 
 				FieldInit();
 
@@ -310,7 +334,6 @@ namespace life
 			return !steps.IsBegin();
 		}
 
-		
 		/// <summary>
 		/// Расчёт следующего хода.
 		/// </summary>
@@ -360,7 +383,7 @@ namespace life
 		/// Формат текстового файла:
 		/// {width},{height},{Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
 		/// </summary>
-		/// <param name="fileName"></param>
+		/// <param name="fileName">Имя файла для записи</param>
 		public void Save(string fileName = null)
 		{
 			if (fileName == null)
@@ -403,7 +426,7 @@ namespace life
 		/// <summary>
 		/// Загружает игровое поле из файла
 		/// </summary>
-		/// <param name="fileName"></param>
+		/// <param name="fileName">Имя файла для загрузки</param>
 		public (int dx, int dy) Load(string fileName = null)
 		{
 			if (fileName == null)
@@ -420,16 +443,10 @@ namespace life
 					int dx = ReadInt(reader);
 					int dy = ReadInt(reader);
 
-					if ( dx != width && dy != height)
-					{
-						field.Resize(dx, dy);
+					IfNeededToMakeResizing(dx, dy);
 
-						width = dx;
-						height = dy;
-					}
-					
 					int count = ReadInt(reader);
-					
+
 					for (int i = 0; i < count; i++)
 					{
 						field.Add(ReadCell(reader));
@@ -448,8 +465,19 @@ namespace life
 			return (width, height);
 		}
 
+		private void IfNeededToMakeResizing(int dx, int dy)
+		{
+			if (dx != width || dy != height)
+			{
+				field.Resize(dx, dy);
+
+				width = dx;
+				height = dy;
+			}
+		}
+
 		/// <summary>
-		/// Читает целое число, ограниченное разделителями, из файла
+		/// Читает целое число, ограниченное разделителями, из потока
 		/// </summary>
 		/// <returns></returns>
 		private int ReadInt(StreamReader sr)
@@ -475,7 +503,7 @@ namespace life
 		/// Читает данные одной ячейки и создаёт её
 		/// </summary>
 		/// <param name="sr"></param>
-		/// <returns>возвращает соззданную ячейку</returns>
+		/// <returns>возвращает созданную ячейку</returns>
 		private Cell ReadCell(StreamReader sr)
 		{
 			int x = ReadInt(sr);
@@ -595,15 +623,25 @@ namespace life
 		/// <summary>
 		/// Заполнение поля клетками 
 		/// </summary>
-		public void EnterCells()
+		public void SettingCells()
 		{
-			SetRandomCells();	// случайным образом
+			SetRandomCells();   // случайным образом
 
-			SetBorderCells();	// Граница игрового поля
+			SetBorderCells();   // Граница игрового поля
+		}
 
-			//GospersGliderGun(5, 5); // Ружьё Госпера
+		public void SettingCells(int dx, int dy, float density, bool isBorderCells = true)
+		{
+			Clear();
 
-			//DiagonalSpaceShip(width - 30, height - 30); // Диагональный корабль
+			IfNeededToMakeResizing(dx, dy);
+			
+			SetRandomCells(density);   // случайным образом
+
+			if (isBorderCells)
+			{
+				SetBorderCells();   // Граница игрового поля
+			}
 		}
 
 		private void SetBorderCells()
@@ -621,21 +659,37 @@ namespace life
 			}
 		}
 
-		private void SetRandomCells()
+		private void SetRandomCells(float density = 0.3f)
 		{
 			Random rnd = new Random();
 
-			for (int x = 2; x < width - 2; x++)
+			int numberCells = (int)Math.Ceiling((width - 4) * (height - 4) * density);
+			
+			// заполняем заданным числом ячеек
+			for (int i = 0; i < numberCells;)
 			{
-				for (int y = 2; y < height - 2; y++)
+				int x = rnd.Next(2, width - 2);
+				int y = rnd.Next(2, height - 2);
+
+				if (field[x, y] == null)
 				{
-					int r = rnd.Next(300);
-					if (r > 100 && r < 200)
-					{
-						field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true }; // клетка есть
-					}
+					field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true };
+
+					i++;
 				}
 			}
+			
+			//for (int x = 2; x < width - 2; x++)
+			//{
+			//	for (int y = 2; y < height - 2; y++)
+			//	{
+			//		int r = rnd.Next(300);
+			//		if (r > 100 && r < 200)
+			//		{
+			//			field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true }; // клетка есть
+			//		}
+			//	}
+			//}
 		}
 
 		#region IDisposable Support
