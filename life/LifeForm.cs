@@ -298,11 +298,11 @@ namespace life
             // 
             // openFileDialog
             // 
-            this.openFileDialog.Filter = "\"*.life|*.life|*.save|*.save\"";
+            this.openFileDialog.Filter = "*.life|*.life|*.save|*.save";
             // 
             // saveFileDialog
             // 
-            this.saveFileDialog.Filter = "\"*.life|*.life|*.save|*.save\"";
+            this.saveFileDialog.Filter = "*.life|*.life|*.save|*.save";
             // 
             // LifeForm
             // 

@@ -216,7 +216,7 @@ namespace life
 		/// <param name="cell"></param>
 		public void RemoveCell(Cell cell)
 		{
-			if (!cell.isStaticCell)	// не удаляем из списка статичные клетки
+			if (!cell.IsStatic())	// не удаляем из списка статичные клетки
 			{
 				field.Remove(cell);
 			}
@@ -242,7 +242,7 @@ namespace life
 					CurrentListCells.Add(currentCell);
 				}
 				else 
-				if (currentCell.isStaticCell)
+				if (currentCell.IsStatic())
 				{
 					continue;
 				}
@@ -268,7 +268,7 @@ namespace life
 				if (currentcell == null)
 					continue;					// клетки нет
 
-				if (currentcell.isStaticCell)	// Статичная клетка(стенка)
+				if (currentcell.IsStatic())	// Статичная клетка(стенка)
 				{
 					return 5;	// клетки рядом с ней должны погибнуть
 				}
@@ -399,7 +399,7 @@ namespace life
 
 					foreach(var cell in field)
 					{
-						if (cell.IsLive())
+						if (cell.IsLive() || cell.IsStatic())
 						{
 							count++;
 						}
@@ -409,9 +409,9 @@ namespace life
 
 					foreach (var cell in field)
 					{
-						if (cell.IsLive())
+						if (cell.IsLive() || cell.IsStatic())
 						{
-							char isStaticCell = (cell.isStaticCell) ? 's' : 'n';
+							char isStaticCell = (cell.IsStatic()) ? 's' : 'n';
 							writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
 						}
 					}
@@ -511,10 +511,9 @@ namespace life
 
 			Cell cell = new Cell(this, x, y)
 			{
-				Status = StatusCell.Yes,
+				Status = (sr.Read() == 's') ? StatusCell.Static : StatusCell.Yes,
 				NewStatus = StatusCell.Yes,
-				active = true,
-				isStaticCell = (sr.Read() == 's') ? true : false
+				active = true	//,isStaticCell = (sr.Read() == 's') ? true : false
 			};
 
 			sr.Read();	// разделитель ';'
@@ -531,7 +530,7 @@ namespace life
 			
 			foreach(Cell currentCell in field)
 			{
-				if (!currentCell.isStaticCell && currentCell.IsLive())
+				if (currentCell.IsLive())	//!currentCell.IsStatic() && 
 				{
 					NewListCells.Add(currentCell);
 				}
@@ -627,7 +626,7 @@ namespace life
 		{
 			SetRandomCells();   // случайным образом
 
-			SetBorderCells();   // Граница игрового поля
+			SetStaticBorderCells();   // Граница игрового поля
 		}
 
 		public void SettingCells(int dx, int dy, float density, bool isBorderCells = true)
@@ -640,22 +639,22 @@ namespace life
 
 			if (isBorderCells)
 			{
-				SetBorderCells();   // Граница игрового поля
+				SetStaticBorderCells();   // Граница игрового поля
 			}
 		}
 
-		private void SetBorderCells()
+		private void SetStaticBorderCells()
 		{
 			for (int x = 0; x < width; x++)
 			{
-				field[x, 0] = new Cell(this, x, 0) { isStaticCell = true, Status = StatusCell.Yes };
-				field[x, height - 1] = new Cell(this, x, height - 1) { isStaticCell = true, Status = StatusCell.Yes };
+				field[x, 0] = new Cell(this, x, 0) { Status = StatusCell.Static };
+				field[x, height - 1] = new Cell(this, x, height - 1) { Status = StatusCell.Static };
 			}
 
 			for (int y = 1; y < height - 1; y++)
 			{
-				field[0, y] = new Cell(this, 0, y) { isStaticCell = true, Status = StatusCell.Yes };
-				field[width - 1, y] = new Cell(this, width - 1, y) { isStaticCell = true, Status = StatusCell.Yes };
+				field[0, y] = new Cell(this, 0, y) { Status = StatusCell.Static };
+				field[width - 1, y] = new Cell(this, width - 1, y) { Status = StatusCell.Static };
 			}
 		}
 

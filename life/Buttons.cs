@@ -22,6 +22,8 @@ namespace life
             btnPreviousStep.Click += BtnPreviousStep_Click;
 
             btnLoadField.Click += BtnLoadField_Click;
+
+            btnSaveField.Click += BtnSaveField_Click;
         }
     }
 }

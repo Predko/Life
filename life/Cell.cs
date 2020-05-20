@@ -12,26 +12,25 @@ namespace life
 		void Draw(Graphics g);
 	}
 
+	/// <summary>
+	/// Клетка есть, нет, статичная 
+	/// </summary>
 	public enum StatusCell { Yes, No, Static };
 
 	public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
 	{
-		public StatusCell Status { get; set; }		// есть клетка или нет
-		public StatusCell NewStatus { get; set; }	// есть клетка или нет
+		public StatusCell Status { get; set; }		// есть клетка или нет или она статичная
+		public StatusCell NewStatus { get; set; }	// Новый статус клетки
+		public bool active;							// активная ячейка(true)- добавлена в список для обработки
+
 		public Field field;
 		public FieldLocation Location { get; set; }     // координаты ячейки на поле Field
-
-		public bool active;             // активная ячейка(true)- добавлена в список событий
-		public bool isStaticCell;       // Статическая(неизменная) ячейка. В список событий не добавляется
 
 		public Cell(Field fld, FieldLocation fl)
 		{
 			field = fld;
 			Status = StatusCell.No;
 			NewStatus = StatusCell.No;
-			isStaticCell = false;
-
-			SetCell();
 
 			Location = fl;
 		}
@@ -51,23 +50,12 @@ namespace life
 			Status = cl.Status;
 			NewStatus = cl.NewStatus;
 			active = cl.active;
-			isStaticCell = cl.isStaticCell;
 			Location = cl.Location;
 		}
 
-		public bool IsLive() => Status == StatusCell.Yes; // клетка есть
-
-		public void SetCell(StatusCell cl = StatusCell.No)
-		{
-			if (Status != cl)
-			{
-				Status = cl;
-			}
-		}
-
-		public void SetCellNo() => SetCell(StatusCell.No);
-
-		public void SetCellYes() => SetCell(StatusCell.Yes);
+		public bool IsLive() => (Status == StatusCell.Yes);		// клетка есть
+		public bool IsStatic() => (Status == StatusCell.Static);// статичная клетка
+		public bool IsNoCell() => (Status == StatusCell.No);    // клетки нет
 
 		/// <summary>
 		/// Анализ следующего шага.
@@ -140,12 +128,6 @@ namespace life
 
 		public bool IsChangeStatus() => (Status != NewStatus);
 
-		public void SetStaticCell()
-		{
-			isStaticCell = true;
-			SetCell(StatusCell.Yes);
-		}
-
 		// отрисовываем ячейку на битовой карте
 		public virtual void Draw(Graphics g)
 		{
@@ -153,16 +135,19 @@ namespace life
 			int x = Location.X * field.CellSize;
 			int y = Location.Y * field.CellSize;
 
-			Bitmap bm = (isStaticCell) ? field.CellStaticBitmap : field.CellBitmap;
-
-			if (Status == StatusCell.Yes)
+			if (IsLive())
 			{
-				g.DrawImage(bm, x, y, field.rectCellYes, GraphicsUnit.Pixel);
+				g.DrawImage(field.CellBitmap, x, y, field.rectCellYes, GraphicsUnit.Pixel);
 			}
 			else
-			if (Status == StatusCell.No)
+			if (IsNoCell())
 			{
-				g.DrawImage(bm, x, y, field.rectCellNo, GraphicsUnit.Pixel);
+				g.DrawImage(field.CellBitmap, x, y, field.rectCellNo, GraphicsUnit.Pixel);
+			}
+			else
+			if(IsStatic())
+			{
+				g.DrawImage(field.CellStaticBitmap, x, y, field.rectCellYes, GraphicsUnit.Pixel);
 			}
 		}
 
@@ -175,8 +160,7 @@ namespace life
 			return Location.Equals(other.Location) &&
 				   Status == other.Status &&
 				   NewStatus == other.NewStatus &&
-				   active == other.active &&
-				   isStaticCell == other.isStaticCell;
+				   active == other.active;
 		}
 
 		public override bool Equals(object obj) => obj is Cell other && Equals(other);
