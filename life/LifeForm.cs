@@ -197,6 +197,7 @@ namespace life
             this.flpGameCantrols.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.flpGameCantrols.AutoSize = true;
             this.flpGameCantrols.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.flpGameCantrols.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.flpGameCantrols.Controls.Add(this.btnNewGame);
             this.flpGameCantrols.Controls.Add(this.btnStartStop);
             this.flpGameCantrols.Controls.Add(this.btnMakeAStep);
@@ -309,6 +310,7 @@ namespace life
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1534, 717);
             this.Controls.Add(this.tlPanel);
             this.DoubleBuffered = true;

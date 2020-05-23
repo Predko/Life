@@ -14,11 +14,15 @@ namespace life
 		public int X;
 		public int Y;
 
+		static public FieldLocation Empty = new FieldLocation(0, 0);
+
 		public FieldLocation(int x, int y)
 		{
 			X = x;
 			Y = y;
 		}
+
+
 
 		public int CompareTo(FieldLocation fl) => GetHashCode() - fl.GetHashCode();
 
@@ -41,11 +45,36 @@ namespace life
 		public static bool operator >=(FieldLocation left, FieldLocation right) => left.CompareTo(right) >= 0;
 	}
 
+	public class BitmapCellsStorage
+	{
+		public Bitmap normalCell;
+		public Bitmap staticCell;
+
+		public BitmapCellsStorage() { }
+
+		public BitmapCellsStorage(Bitmap nc, Bitmap sc)
+		{
+			normalCell = nc;
+
+			staticCell = sc;
+		}
+
+		public Bitmap GetBitmap(StatusCell cell)
+		{
+			if (cell == StatusCell.Static)
+			{
+				return staticCell;
+			}
+			
+			return normalCell;
+		}
+	}
+
 	// Игровое поле
 	public class Field:IDisposable
 	{
-		private int width;
-		private int height;
+		public int width;
+		public int height;
 
 		public int CellSize { get; set; }
 		public Rectangle Bounds { get; set; }
@@ -53,8 +82,8 @@ namespace life
 		Graphics bitmapGraphics;
 
 		public Bitmap bitmap;
-		public Bitmap CellBitmap;
-		public Bitmap CellStaticBitmap;
+		public Bitmap NormalCellBitmap;
+		public Bitmap StaticCellBitmap;
 
 		public Rectangle rectCellYes;
 		public Rectangle rectCellNo;
@@ -91,8 +120,8 @@ namespace life
 
 			steps = new LogOfSteps(this);
 
-			CellBitmap = normalCell;
-			CellStaticBitmap = staticCell;
+			NormalCellBitmap = normalCell;
+			StaticCellBitmap = staticCell;
 
 			CellSize = cellSize;
 		}
@@ -104,31 +133,31 @@ namespace life
 				bitmap.Dispose();
 			}
 
-			CellBitmap.Dispose();
+			NormalCellBitmap.Dispose();
 
-			CellBitmap = normalCell;
+			NormalCellBitmap = normalCell;
 
-			CellStaticBitmap.Dispose();
+			StaticCellBitmap.Dispose();
 
-			CellStaticBitmap = staticCell;
+			StaticCellBitmap = staticCell;
 		}
 
 		internal void BitmapCellChanged(Bitmap bmcell)
 		{
-			CellBitmap.Dispose();
+			NormalCellBitmap.Dispose();
 
-			CellBitmap = bmcell;
+			NormalCellBitmap = bmcell;
 
-			CellBitmap = new Bitmap(CellBitmap, new Size(CellSize * 2, CellSize));
+			NormalCellBitmap = new Bitmap(NormalCellBitmap, new Size(CellSize * 2, CellSize));
 		}
 
 		internal void BitmapStaticCellChanged(Bitmap bmcell)
 		{
-			CellStaticBitmap.Dispose();
+			StaticCellBitmap.Dispose();
 
-			CellStaticBitmap = bmcell;
+			StaticCellBitmap = bmcell;
 
-			CellStaticBitmap = new Bitmap(CellStaticBitmap, new Size(CellSize * 2, CellSize));
+			StaticCellBitmap = new Bitmap(StaticCellBitmap, new Size(CellSize * 2, CellSize));
 		}
 
 		internal void InitBitmap()
@@ -162,11 +191,11 @@ namespace life
 		{
 			Size szbm = new Size(CellSize * 2, CellSize);
 
-			CellBitmap = new Bitmap(CellBitmap, szbm);
-			CellStaticBitmap = new Bitmap(CellStaticBitmap, szbm);
+			NormalCellBitmap = new Bitmap(NormalCellBitmap, szbm);
+			StaticCellBitmap = new Bitmap(StaticCellBitmap, szbm);
 
-			rectCellYes = new Rectangle(0, 0, CellBitmap.Width / 2, CellBitmap.Height);
-			rectCellNo = new Rectangle(CellBitmap.Width / 2, 0, CellBitmap.Width / 2, CellBitmap.Height);
+			rectCellYes = new Rectangle(0, 0, NormalCellBitmap.Width / 2, NormalCellBitmap.Height);
+			rectCellNo = new Rectangle(NormalCellBitmap.Width / 2, 0, NormalCellBitmap.Width / 2, NormalCellBitmap.Height);
 
 			DrawAll();
 		}
@@ -177,7 +206,7 @@ namespace life
 			{
 				for (int x = 0; x < width; x++)
 				{
-					bitmapGraphics.DrawImage(CellBitmap, x * CellSize, y * CellSize, rectCellNo, GraphicsUnit.Pixel);
+					bitmapGraphics.DrawImage(NormalCellBitmap, x * CellSize, y * CellSize, rectCellNo, GraphicsUnit.Pixel);
 				}
 			}
 		}
@@ -200,7 +229,7 @@ namespace life
 		{
 			foreach(Cell cell in field)
 			{
-				cell.Draw(bitmapGraphics);
+				cell.Draw(this, bitmapGraphics);
 			}
 		}
 
@@ -235,7 +264,7 @@ namespace life
 
 				if (currentCell == null)
 				{
-					currentCell = new Cell(this, new FieldLocation(x + i.X, y + i.Y)) { active = true };
+					currentCell = new Cell(new FieldLocation(x + i.X, y + i.Y)) { active = true };
 					
 					field[x + i.X, y + i.Y] = currentCell;
 
@@ -249,14 +278,14 @@ namespace life
 			}
 		}
 
-		// - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
-		/// <summary>
-		/// Подсчёт живых ячеек вокруг данной.
-		/// </summary>
-		/// <param name="x">Координата x клетки</param>
-		/// <param name="y">Координата y клетки</param>
-		/// <returns>Число живых клеток, примыкающих к данной</returns>
-		public int NumberLiveCells(int x, int y)
+        // - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
+        /// <summary>
+        /// Подсчёт живых ячеек вокруг данной.
+        /// </summary>
+        /// <param name="x">Координата x клетки</param>
+        /// <param name="y">Координата y клетки</param>
+        /// <returns>Число живых клеток, примыкающих к данной</returns>
+        public int NumberLiveCells(int x, int y)
 		{
 
 			int count = 0;   // счётчик живых ячеек вокруг данной
@@ -320,7 +349,7 @@ namespace life
 			// Отрисовка изменившихся ячеек
 			foreach (Cell cell in ListCellsForDraw)
 			{
-				cell.Draw(bitmapGraphics);
+				cell.Draw(this, bitmapGraphics);
 			}
 
 			CurrentListCells.Clear();
@@ -347,7 +376,7 @@ namespace life
 			// Заносим клетки в список клеток следующего шага - NewListCells
 			foreach (Cell cell in CurrentListCells)
 			{
-				cell.AnalysisNextStep();
+				cell.AnalysisNextStep(this);
 			}
 
 			// Сохраняем изменения клеток на текущем ходе
@@ -359,13 +388,13 @@ namespace life
 			// фиксируем изменения клеток, рассчитанных при анализе
 			foreach (Cell cell in CurrentListCells)
 			{
-				cell.ChangeStatus();	
+				cell.ChangeStatus(this);	
 			}
 
 			// Отрисовка изменившихся ячеек
 			foreach(Cell cell in ListCellsForDraw)
 			{
-				cell.Draw(bitmapGraphics);
+				cell.Draw(this, bitmapGraphics);
 			}
 
 			CurrentListCells.Clear();
@@ -423,49 +452,30 @@ namespace life
 			}
 		}
 
-		/// <summary>
-		/// Загружает игровое поле из файла
-		/// </summary>
-		/// <param name="fileName">Имя файла для загрузки</param>
-		public (int dx, int dy) Load(string fileName = null)
+		internal void SetField(Block block, FieldLocation begin)
 		{
-			if (fileName == null)
-			{
-				fileName = "Life.save";
-			}
+			Clear();
 
-			using ( StreamReader reader = new StreamReader(fileName))
-			{
-				try
-				{
-					Clear();
+			IfNeededToMakeResizing(block.size.Width, block.size.Height);
 
-					int dx = ReadInt(reader);
-					int dy = ReadInt(reader);
+			PlaceBlock(block, begin);
 
-					IfNeededToMakeResizing(dx, dy);
+			FieldInit();
 
-					int count = ReadInt(reader);
+			DrawFieldToBitmap();
 
-					for (int i = 0; i < count; i++)
-					{
-						field.Add(ReadCell(reader));
-					}
-
-					FieldInit();
-
-					DrawFieldToBitmap();
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message + "\npublic void Field::Load(string fileName)");
-				}
-			}
-
-			return (width, height);
 		}
 
-		private void IfNeededToMakeResizing(int dx, int dy)
+        private void PlaceBlock(Block block, FieldLocation begin)
+        {
+			foreach (Cell cell in block.cells)
+			{
+				cell.Offset(begin);
+				field.Add(cell);
+			}
+        }
+
+        private void IfNeededToMakeResizing(int dx, int dy)
 		{
 			if (dx != width || dy != height)
 			{
@@ -474,51 +484,6 @@ namespace life
 				width = dx;
 				height = dy;
 			}
-		}
-
-		/// <summary>
-		/// Читает целое число, ограниченное разделителями, из потока
-		/// </summary>
-		/// <returns></returns>
-		private int ReadInt(StreamReader sr)
-		{
-			StringBuilder s = new StringBuilder(10);
-
-			while ( sr.Peek() > -1)
-			{
-				char c = (char)sr.Read();
-
-				if (c == ',' || c == ';' || c == ':')
-				{
-					break;
-				}
-
-				s.Append(c);
-			}
-
-			return int.Parse(s.ToString());
-		}
-
-		/// <summary>
-		/// Читает данные одной ячейки и создаёт её
-		/// </summary>
-		/// <param name="sr"></param>
-		/// <returns>возвращает созданную ячейку</returns>
-		private Cell ReadCell(StreamReader sr)
-		{
-			int x = ReadInt(sr);
-			int y = ReadInt(sr);
-
-			Cell cell = new Cell(this, x, y)
-			{
-				Status = (sr.Read() == 's') ? StatusCell.Static : StatusCell.Yes,
-				NewStatus = StatusCell.Yes,
-				active = true	//,isStaticCell = (sr.Read() == 's') ? true : false
-			};
-
-			sr.Read();	// разделитель ';'
-
-			return cell;
 		}
 
 		/// <summary>
@@ -609,7 +574,7 @@ namespace life
 				{
 					if((current & 1) != 0)
 					{
-						Cell cell = new Cell(this, x, y) { active = true, Status = StatusCell.Yes };
+						Cell cell = new Cell(x, y) { active = true, Status = StatusCell.Yes };
 
 						field[x, y] = cell;
 					}
@@ -647,14 +612,14 @@ namespace life
 		{
 			for (int x = 0; x < width; x++)
 			{
-				field[x, 0] = new Cell(this, x, 0) { Status = StatusCell.Static };
-				field[x, height - 1] = new Cell(this, x, height - 1) { Status = StatusCell.Static };
+				field[x, 0] = new Cell(x, 0) { Status = StatusCell.Static };
+				field[x, height - 1] = new Cell(x, height - 1) { Status = StatusCell.Static };
 			}
 
 			for (int y = 1; y < height - 1; y++)
 			{
-				field[0, y] = new Cell(this, 0, y) { Status = StatusCell.Static };
-				field[width - 1, y] = new Cell(this, width - 1, y) { Status = StatusCell.Static };
+				field[0, y] = new Cell(0, y) { Status = StatusCell.Static };
+				field[width - 1, y] = new Cell(width - 1, y) { Status = StatusCell.Static };
 			}
 		}
 
@@ -672,23 +637,11 @@ namespace life
 
 				if (field[x, y] == null)
 				{
-					field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true };
+					field[x, y] = new Cell(x, y) { Status = StatusCell.Yes, active = true };
 
 					i++;
 				}
 			}
-			
-			//for (int x = 2; x < width - 2; x++)
-			//{
-			//	for (int y = 2; y < height - 2; y++)
-			//	{
-			//		int r = rnd.Next(300);
-			//		if (r > 100 && r < 200)
-			//		{
-			//			field[x, y] = new Cell(this, x, y) { Status = StatusCell.Yes, active = true }; // клетка есть
-			//		}
-			//	}
-			//}
 		}
 
 		#region IDisposable Support

@@ -56,6 +56,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Block.cs" />
     <Compile Include="Buttons.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -154,9 +155,7 @@
   <ItemGroup>
     <None Include="Picture\Cell2_08_3.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Picture\Cell2_09_1.png" />
   </ItemGroup>
@@ -249,6 +248,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Picture\cell2_x_02.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\1NNN.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

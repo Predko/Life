@@ -313,12 +313,12 @@ namespace life
         {
             get
             {
-                return Find(new Cell(null, x, y))?.cell;
+                return Find(new Cell(x, y))?.cell;
             }
 
             set
             {
-                BinaryTreeCellsNode node = Find(new Cell(null, x, y));
+                BinaryTreeCellsNode node = Find(new Cell(x, y));
 
                 if (node != (Object)null)
                 {

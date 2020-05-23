@@ -113,7 +113,6 @@ namespace life
                 // и для отрисовки
                 if (cell.NewStatus == StatusCell.No)
                 {                                    
-                    cell.field = currentField;
                     cell.active = true;
                     cell.Status = StatusCell.Yes;
                     cell.NewStatus = StatusCell.Yes;
@@ -218,7 +217,7 @@ namespace life
                         sc = StatusCell.Yes;
                     }
 
-                    Cell cell = new Cell(null, new FieldLocation(x, y))
+                    Cell cell = new Cell(new FieldLocation(x, y))
                     {
                         NewStatus = sc
                     };

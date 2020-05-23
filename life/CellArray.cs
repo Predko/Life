@@ -14,35 +14,30 @@ namespace life
 
         private int width;
         private int height;
-        
+
         public CellArray(int x, int y)
         {
             Resize(x, y);
         }
-        
+
         public Cell this[int x, int y]
         {
             get
             {
-#if !DEBUG
-            if (x >= width || y >= height)
-            {
-                return;
-            }
-#endif
-
+                if (x >= width || y >= height || x < 0 || y < 0)
+                {
+                    return null;
+                }
                 return cells[x, y];
             }
 
             set
             {
 
-#if !DEBUG
-            if (x >= width || y >= height)
-            {
-                return;
-            }
-#endif
+                if (x >= width || y >= height || x < 0 || y < 0)
+                {
+                    return;
+                }
 
                 if (cells[x, y] == null && value != null)
                 {
@@ -60,12 +55,11 @@ namespace life
                 return;
             }
 
-#if !DEBUG
-            if (cell.Location.X >= width || cell.Location.Y >= height)
+            if (cell.Location.X >= width || cell.Location.Y >= height || cell.Location.X < 0 || cell.Location.Y < 0)
             {
                 return;
             }
-#endif
+
             if (cells[cell.Location.X, cell.Location.Y] == null)
             {
                 Count++;
@@ -77,12 +71,10 @@ namespace life
         public void Remove(Cell cell)
         {
 
-#if !DEBUG
-            if (cell.Location.X >= width || cell.Location.Y >= height)
+            if (cell.Location.X >= width || cell.Location.Y >= height || cell.Location.X < 0 || cell.Location.Y < 0)
             {
                 return;
             }
-#endif
 
             if (cells[cell.Location.X, cell.Location.Y] != null)
             {
@@ -98,7 +90,7 @@ namespace life
             {
                 for (int y = 0; y < height; y++)
                 {
-                    cells[x,y] = null;
+                    cells[x, y] = null;
                 }
             }
 
@@ -121,13 +113,13 @@ namespace life
 
                 yield return cell;
             }
-            
+
             //for (int x = 0; x < cells.GetLength(0); x++)
             //{
             //    for (int y = 0; y < cells.GetLength(1); y++)
             //    {
-                    
-                    
+
+
             //        yield return cells[x,y];
             //    }
             //}
