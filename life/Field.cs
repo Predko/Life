@@ -452,13 +452,13 @@ namespace life
 			}
 		}
 
-		internal void SetField(Block block, FieldLocation begin)
+		internal void SetField(Block block)
 		{
 			Clear();
 
 			IfNeededToMakeResizing(block.size.Width, block.size.Height);
 
-			PlaceBlock(block, begin);
+			PlaceBlock(block, FieldLocation.Empty);
 
 			FieldInit();
 
