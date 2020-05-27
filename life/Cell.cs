@@ -27,9 +27,9 @@ namespace life
         public StatusCell NewStatus { get; set; }   // Новый статус клетки
         public bool active;                         // активная ячейка(true)- добавлена в список для обработки
 
-        public FieldLocation Location { get; set; }     // координаты ячейки на поле Field
+        public CellLocation Location { get; set; }     // координаты ячейки на поле Field
 
-        public Cell(FieldLocation fl)
+        public Cell(CellLocation fl)
         {
             Status = StatusCell.No;
             NewStatus = StatusCell.No;
@@ -37,7 +37,7 @@ namespace life
             Location = fl;
         }
 
-        public Cell(int x, int y) : this(new FieldLocation(x, y))
+        public Cell(int x, int y) : this(new CellLocation(x, y))
         {
         }
 
@@ -118,7 +118,7 @@ namespace life
 
                 Status = NewStatus;
 
-                field.ListCellsForDraw.Add(this);
+                field.AddToDraw(this);
             }
 
             if (!active) // неактивные(погибшие) клетки удаляем с поля
@@ -184,9 +184,9 @@ namespace life
 
         public override bool Equals(object obj) => obj is Cell other && Equals(other);
 
-        internal void Offset(FieldLocation begin)
+        internal void Offset(CellLocation begin)
         {
-            Location = new FieldLocation(Location.X + begin.X, Location.Y + begin.Y);
+            Location = new CellLocation(Location.X + begin.X, Location.Y + begin.Y);
         }
     }
 }

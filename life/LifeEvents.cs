@@ -9,7 +9,10 @@ namespace life
         {
             if (settingField.ShowDialog() == DialogResult.OK)
             {
-                NewField(settingField.SizeField.Width, settingField.SizeField.Height, 0.3f, settingField.IsBorder);
+                field.density = settingField.Density;
+                field.isBorder = settingField.IsBorder;
+                
+                NewField(settingField.SizeField.Width, settingField.SizeField.Height, settingField.Density, settingField.IsBorder);
 
                 panelField.Invalidate();
             }

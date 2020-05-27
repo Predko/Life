@@ -50,7 +50,7 @@ namespace life
         /// <summary>
         /// Восстанавливает состояние ячеек на предыдущем ходу
         /// </summary>
-        /// <param name="currentListCells">Список ячеек на текущем ходе</param>
+        /// <param name="currentListCells">Список ячеек текущего хода</param>
         /// <returns>false - если не удалось выполнить операцию</returns>
         public bool Previous(List<Cell> currentListCells)
         {
@@ -105,7 +105,7 @@ namespace life
 
                     currentField.RemoveCell(foundCell);
 
-                    currentField.ListCellsForDraw.Add(foundCell);
+                    currentField.AddToDraw(foundCell);
                 }
                 else
                 // Если клетка исчезла на предыдущем ходе
@@ -121,7 +121,7 @@ namespace life
 
                     currentField.AddCell(cell);
 
-                    currentField.ListCellsForDraw.Add(cell);
+                    currentField.AddToDraw(cell);
                 }
             }
 
@@ -217,7 +217,7 @@ namespace life
                         sc = StatusCell.Yes;
                     }
 
-                    Cell cell = new Cell(new FieldLocation(x, y))
+                    Cell cell = new Cell(new CellLocation(x, y))
                     {
                         NewStatus = sc
                     };

@@ -56,12 +56,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitmapCellsStorage.cs" />
     <Compile Include="Block.cs" />
     <Compile Include="Buttons.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="CellArray.cs" />
     <Compile Include="BinaryTreeCells.cs" />
+    <Compile Include="CellLocation.cs" />
     <Compile Include="CellsComboBox.cs">
       <SubType>Form</SubType>
     </Compile>
