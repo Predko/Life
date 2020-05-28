@@ -44,9 +44,9 @@ namespace life
 
         private void BtnMakeAStep_Click(object sender, EventArgs e)
         {
-            field.CalcNextStep();
+            field.NextStep();
 
-            Count++;
+            MoveCounter++;
 
             btnPreviousStep.Enabled = true;
 
@@ -64,11 +64,11 @@ namespace life
             {
                 btnPreviousStep.Enabled = false;
 
-                Count = 0;
+                MoveCounter = 0;
             }
             else
             {
-                Count--;
+                MoveCounter--;
             }
 
             panelField.Invalidate();
@@ -81,7 +81,9 @@ namespace life
                 return;
             }
 
-            field.Save(saveFileDialog.FileName);
+            Block cells = new Block(field);
+
+            cells.SaveToFile(saveFileDialog.FileName);
         }
 
         private void BtnLoadField_Click(object sender, EventArgs e)
@@ -103,9 +105,9 @@ namespace life
                 {
                     timer.Enabled = true;
                 }
-                field.CalcNextStep();
+                field.NextStep();
 
-                Count++;
+                MoveCounter++;
 
                 panelField.Invalidate();
             }
@@ -118,17 +120,17 @@ namespace life
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            field.CalcNextStep();
+            field.NextStep();
 
-            Count++;
+            MoveCounter++;
 
-            lbCount.Text = $"Step: {Count,5:d}";
+            lbCount.Text = $"Step: {MoveCounter,5:d}";
 
             panelField.Invalidate();
         }
 
         /// <summary>
-        /// Отслеживаем изменения позиции ползунка и изменяем значение TimerInterval
+        /// Отслеживает изменения позиции ползунка и изменяет значение TimerInterval
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -136,7 +138,7 @@ namespace life
         {
             if (e.Type == ScrollEventType.ThumbTrack || e.Type == ScrollEventType.EndScroll)
             {
-                SetTimerInterval(e.NewValue);
+                SetSpeedGame(e.NewValue);
             }
         }
 

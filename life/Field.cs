@@ -18,6 +18,17 @@ namespace life
         public int height;
 
         /// <summary>
+        /// граница поля есть/нет
+        /// </summary>
+        public bool isBorder;
+
+        /// <summary>
+        /// плотность генерируемого поля
+        /// </summary>
+        public float density;
+
+        public Rectangle Rectangle { get => new Rectangle(0, 0, width, height); }
+        /// <summary>
         /// Отступ от края игрового поля, где не будут располагаться клетки, кроме статичных клеток.
         /// </summary>
         private const int padding = 2;
@@ -28,9 +39,18 @@ namespace life
         /// </summary>
         public Rectangle Bounds { get; set; }
 
+        /// <summary>
+        /// Экземпляр типа Graphics для отрисовки на битовой карте
+        /// </summary>
         Graphics bitmapGraphics;
 
+        /// <summary>
+        /// Битовая карта для отрисовки игрового поля
+        /// </summary>
         public Bitmap bitmap;
+
+        public BitmapCellsStorage bitmapCells;
+
         public Bitmap NormalCellBitmap;
         public Bitmap StaticCellBitmap;
 
@@ -38,7 +58,7 @@ namespace life
         public Rectangle rectCellNo;
 
         // массив координат ячеек вокруг данной
-        private readonly CellLocation[] Dxy = new CellLocation[8];
+        private readonly CellLocation[] nearestCellsLocation = new CellLocation[8];
 
         /// <summary>
         /// хранилище ячеек игрового поля
@@ -46,24 +66,14 @@ namespace life
         private readonly ICellArray field;
 
         /// <summary>
-        /// граница поля есть/нет
-        /// </summary>
-        public bool isBorder;
-
-        /// <summary>
-        /// плотность генерируемого поля
-        /// </summary>
-        public float density;
-
-        /// <summary>
         /// Список активных клеток текущего хода
         /// </summary>
         private readonly List<Cell> CurrentListCells;
-        
+
         /// <summary>
         /// Список активных клеток для следующего хода
         /// </summary>
-        public List<Cell> NewListCells;
+        private readonly List<Cell> NewListCells;
 
         /// <summary>
         /// Список клеток для отрисовки
@@ -71,7 +81,7 @@ namespace life
         private readonly List<Cell> ListCellsForDraw;
 
         /// <summary>
-        /// Запись сделанных ходов
+        /// Запись истории сделанных ходов.
         /// </summary>
         private readonly LogOfSteps steps;
 
@@ -83,9 +93,14 @@ namespace life
             isBorder = true;
             density = 0.3f;
 
-            Dxy[0].X = -1; Dxy[0].Y = -1; Dxy[1].X = -1; Dxy[1].Y = 0; Dxy[2].X = -1; Dxy[2].Y = 1;
-            Dxy[3].X = 0; Dxy[3].Y = -1; Dxy[4].X = 0; Dxy[4].Y = 1;
-            Dxy[5].X = 1; Dxy[5].Y = -1; Dxy[6].X = 1; Dxy[6].Y = 0; Dxy[7].X = 1; Dxy[7].Y = 1;
+            nearestCellsLocation[0].X = -1; nearestCellsLocation[0].Y = -1;
+            nearestCellsLocation[1].X = -1; nearestCellsLocation[1].Y = 0;
+            nearestCellsLocation[2].X = -1; nearestCellsLocation[2].Y = 1;
+            nearestCellsLocation[3].X = 0; nearestCellsLocation[3].Y = -1;
+            nearestCellsLocation[4].X = 0; nearestCellsLocation[4].Y = 1;
+            nearestCellsLocation[5].X = 1; nearestCellsLocation[5].Y = -1;
+            nearestCellsLocation[6].X = 1; nearestCellsLocation[6].Y = 0;
+            nearestCellsLocation[7].X = 1; nearestCellsLocation[7].Y = 1;
 
             CurrentListCells = new List<Cell>();
             NewListCells = new List<Cell>();
@@ -96,11 +111,19 @@ namespace life
 
             steps = new LogOfSteps(this);
 
+            bitmapCells = new BitmapCellsStorage(normalCell, staticCell);
+
             NormalCellBitmap = normalCell;
             StaticCellBitmap = staticCell;
 
             CellSize = cellSize;
         }
+
+        /// <summary>
+        /// Добавляет ячейку в список для следующего хода.
+        /// </summary>
+        /// <param name="cell">Добавляемая ячейка.</param>
+        internal void AddCellForNextStep(Cell cell) => NewListCells.Add(cell);
 
         /// <summary>
         /// 
@@ -130,11 +153,6 @@ namespace life
             NormalCellBitmap = new Bitmap(bmcell, new Size(CellSize * 2, CellSize));
         }
 
-        internal void AddToDraw(Cell cell)
-        {
-            ListCellsForDraw.Add(cell);
-        }
-
         internal void BitmapStaticCellChanged(Bitmap bmcell)
         {
             StaticCellBitmap.Dispose();
@@ -160,11 +178,20 @@ namespace life
         /// <summary>
         /// Очистка игрового поля - очистка хранилища ячеек, очистка лога шагов
         /// </summary>
-        public void Clear()
+        private void Clear()
         {
             field.Clear();
 
             steps.Clear();
+        }
+
+        /// <summary>
+        /// Добавляет клетку в список для отрисовки на следующем ходу
+        /// </summary>
+        /// <param name="cell"></param>
+        internal void AddToDraw(Cell cell)
+        {
+            ListCellsForDraw.Add(cell);
         }
 
         public bool IsLogEmpty() => steps.IsBegin();
@@ -194,18 +221,16 @@ namespace life
         }
 
         /// <summary>
-        /// Отрисовка подготовленной битовой карты на форме
+        /// Отрисовывает подготовленную битовую карту на форме.
         /// </summary>
         /// <param name="g"></param>
         public void Redraw(Graphics g)
         {
-            //Rectangle rectsrc = new Rectangle(0, 0, Bounds.Width, Bounds.Height);
-
             g.DrawImage(bitmap, Bounds);
         }
 
         /// <summary>
-        /// Отрисовка изменившихся клеток игрового поля
+        /// Отрисовывает изменившиеся клетки игрового поля.
         /// </summary>
         public void Draw()
         {
@@ -216,13 +241,13 @@ namespace life
         }
 
         /// <summary>
-        /// Добавление клетки на игровое поле
+        /// Добавляет клетки на игровое поле.
         /// </summary>
         /// <param name="cell"></param>
         public void AddCell(Cell cell) => field.Add(cell);
 
         /// <summary>
-        /// Удаление клетки с игрового поля(кроме статичных клеток)
+        /// Удаляет клетки с игрового поля(кроме статичных клеток).
         /// </summary>
         /// <param name="cell"></param>
         public void RemoveCell(Cell cell)
@@ -234,13 +259,13 @@ namespace life
         }
 
         /// <summary>
-        /// Добавляем близлежащие клетки к данной в список активных клеток
+        /// Добавляет клетки, близлежащие к клетке с данными координатами, в список активных клеток.
         /// </summary>
-        /// <param name="x">Координата x клетки</param>
-        /// <param name="y">Координата y клетки</param>
-        public void AddNearestCells(int x, int y)
+        /// <param name="x">Координата x клетки.</param>
+        /// <param name="y">Координата y клетки.</param>
+        private void AddNearestCells(int x, int y)
         {
-            foreach (CellLocation i in Dxy)
+            foreach (CellLocation i in nearestCellsLocation)
             {
                 Cell currentCell = field[x + i.X, y + i.Y];
 
@@ -260,19 +285,24 @@ namespace life
             }
         }
 
-        // - подсчёт живых ячеек вокруг данной. status - состояние вызывающей ячейки - клетка : true - есть, false - нет
+        /// <summary>
+        /// Добавляет клетки, близлежащие к данной, в список активных клеток.
+        /// </summary>
+        /// <param name="cell">Текущая клетка.</param>
+        private void AddNearestCells(Cell cell) => AddNearestCells(cell.Location.X, cell.Location.Y);
+
         /// <summary>
         /// Подсчёт живых ячеек вокруг данной.
         /// </summary>
-        /// <param name="x">Координата x клетки</param>
-        /// <param name="y">Координата y клетки</param>
-        /// <returns>Число живых клеток, примыкающих к данной</returns>
-        public int NumberLiveCells(int x, int y)
+        /// <param name="x">Координата x клетки.</param>
+        /// <param name="y">Координата y клетки.</param>
+        /// <returns>Число живых клеток, примыкающих к данной.</returns>
+        internal int NumberLiveCells(int x, int y)
         {
 
             int count = 0;   // счётчик живых ячеек вокруг данной
 
-            foreach (CellLocation loc in Dxy)
+            foreach (CellLocation loc in nearestCellsLocation)
             {
                 Cell currentcell = field[x + loc.X, y + loc.Y];
 
@@ -294,10 +324,10 @@ namespace life
         }
 
         /// <summary>
-        /// Восстанавливает состояние клеток на состояние предыдущего хода
+        /// Ход назад.
         /// </summary>
-        /// <returns>true  если ещё есть записи в логе</returns>
-        public bool PreviousStep()
+        /// <returns>true  если ещё есть записи в истории ходов.</returns>
+        internal bool PreviousStep()
         {
             ListCellsForDraw.Clear();
 
@@ -315,7 +345,6 @@ namespace life
             {
                 // возврат на предыдущий ход завершился с ошибкой
                 // состояние поля - на начальное
-
                 Clear();
 
                 SettingCells();
@@ -338,16 +367,16 @@ namespace life
 
             foreach (Cell cell in NewListCells)
             {
-                AddNearestCells(cell.Location.X, cell.Location.Y);
+                AddNearestCells(cell);
             }
 
             return !steps.IsBegin();
         }
 
         /// <summary>
-        /// Расчёт следующего хода.
+        /// Ход вперёд.
         /// </summary>
-        public void CalcNextStep()
+        internal void NextStep()
         {
             // очищаем списки для клеток следующего хода и отрисовки
             NewListCells.Clear();
@@ -384,60 +413,19 @@ namespace life
             // Подготавливаем список текущих клеток, добавляя в него клетки вокруг живых
             foreach (Cell cell in NewListCells)
             {
-                AddNearestCells(cell.Location.X, cell.Location.Y);
+                AddNearestCells(cell);
             }
         }
 
         /// <summary>
-        /// Сохраняет текущее поле в файл
-        /// Формат текстового файла:
-        /// {width},{height},{Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
+        /// Создание нового игрового поля из блока ячеек.
         /// </summary>
-        /// <param name="fileName">Имя файла для записи</param>
-        public void Save(string fileName = null)
-        {
-            if (fileName == null)
-            {
-                fileName = "Life.save";
-            }
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(fileName))
-                {
-                    int count = 0;
-
-                    foreach (var cell in field)
-                    {
-                        if (cell.IsLive() || cell.IsStatic())
-                        {
-                            count++;
-                        }
-                    }
-
-                    writer.Write($"{width},{height},{count}:");
-
-                    foreach (var cell in field)
-                    {
-                        if (cell.IsLive() || cell.IsStatic())
-                        {
-                            char isStaticCell = (cell.IsStatic()) ? 's' : 'n';
-                            writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message + "public void Field::Save(string fileName)");
-            }
-        }
-
+        /// <param name="block">Блок ячеек.</param>
         internal void SetField(Block block)
         {
             Clear();
 
-            IfNeededToMakeResizing(block.size.Width, block.size.Height);
+            IfNeededToMakeResizing(block.Size.Width, block.Size.Height);
 
             PlaceBlock(block, CellLocation.Empty);
 
@@ -446,14 +434,46 @@ namespace life
             FirstDrawFieldToBitmap();
         }
 
+        /// <summary>
+        /// Помещает указанный блок ячеек на игровое поле, в заданные координаты.
+        /// Ячейки, чьи координаты выходят за пределы поля, игнорируются.
+        /// </summary>
+        /// <param name="block">Блок ячеек.</param>
+        /// <param name="begin">Позиция на поле для размещения.</param>
         private void PlaceBlock(Block block, CellLocation begin)
         {
-            foreach (Cell cell in block.cells)
+            foreach (Cell cell in block)
             {
                 cell.Offset(begin);
                 field.Add(cell);
             }
         }
+
+        /// <summary>
+        /// Возвращает список ячеек, находящихся в заданной прямоугольной области.
+        /// </summary>
+        /// <param name="fieldRect">Ограничивающий прямоугольник.</param>
+        /// <returns>Список ячеек.</returns>
+        internal List<Cell> GetCells(Rectangle fieldRect)
+        {
+            List<Cell> listCells = new List<Cell>();
+
+            foreach (Cell cell in field)
+            {
+                if (cell.IsLive() || cell.IsStatic())
+                {
+                    listCells.Add(cell);
+                }
+            }
+
+            return listCells;
+        }
+
+        /// <summary>
+        /// Возвращает список всех ячеек игрового поля.
+        /// </summary>
+        /// <returns>Список ячеек.</returns>
+        internal List<Cell> GetCells() => GetCells(Rectangle);
 
         private void IfNeededToMakeResizing(int dx, int dy)
         {
@@ -469,9 +489,9 @@ namespace life
         }
 
         /// <summary>
-        /// Подготавливаем список текущих клеток для начала игры
+        /// Подготавливает список текущих клеток для начала игры.
         /// </summary>
-        public void PrepareField()
+        internal void PrepareField()
         {
             NewListCells.Clear();
 
@@ -488,7 +508,7 @@ namespace life
 
             foreach (Cell cell in NewListCells)
             {
-                AddNearestCells(cell.Location.X, cell.Location.Y);
+                AddNearestCells(cell);
             }
         }
 
@@ -569,7 +589,7 @@ namespace life
         /// <summary>
         /// Заполнение поля клетками 
         /// </summary>
-        public void SettingCells()
+        internal void SettingCells()
         {
             SetRandomCells();   // случайным образом
 
@@ -579,7 +599,7 @@ namespace life
             }
         }
 
-        public void SettingCells(int dx, int dy, float density, bool isBorderCells)
+        internal void SettingCells(int dx, int dy, float density, bool isBorderCells)
         {
             Clear();
 
@@ -639,7 +659,6 @@ namespace life
 
         #region IDisposable Support
         private bool disposedValue = false; // Для определения избыточных вызовов
-        private int numberCells;
 
         protected virtual void Dispose(bool disposing)
         {

@@ -63,44 +63,45 @@ namespace life
         /// </summary>
         public void AnalysisNextStep(Field field)
         {
-            //if (isStaticCell)
-            //{
-            //	field.NewListCells.Add(this);
-            //}
-
             int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
 
-            NewStatus = Status; // Новое состояние клетки приравниваем к старому
+            // Новое состояние клетки приравниваем к старому
+            NewStatus = Status;
 
             if (numberNearest == 3)
             {
                 if (!IsLive())          // клетки нет
                 {
-                    NewStatus = StatusCell.Yes;            // клетка родится
+                    // клетка появится
+                    NewStatus = StatusCell.Yes;
                 }
 
-                field.NewListCells.Add(this);
+                field.AddCellForNextStep(this);
             }
             else
             if (numberNearest == 2)
             {
                 if (IsLive())
                 {
-                    field.NewListCells.Add(this);       // клетка остаётся на следующий ход
+                    // клетка остаётся на следующий ход
+                    field.AddCellForNextStep(this);
                 }
                 else
                 {
-                    active = false;     // делаем неактивной
+                    // делаем неактивной
+                    active = false;
                 }
             }
             else
             {
                 if (IsLive())   // клетка есть
                 {
-                    NewStatus = StatusCell.No;         // клетка исчезает
+                    // клетка исчезает
+                    NewStatus = StatusCell.No;
                 }
 
-                active = false; // make inactive
+                // make inactive
+                active = false; 
             }
         }
 
