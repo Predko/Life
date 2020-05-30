@@ -16,9 +16,9 @@ namespace life
         private readonly IContainer components = null;
 
         private TableLayoutPanel tlPanel;
-        
+
         private FlowLayoutPanel flpGameCantrols;
-        
+
         private Button btnStartStop;
         private Button btnMakeAStep;
         private Button btnPreviousStep;
@@ -26,9 +26,9 @@ namespace life
         private Button btnLoadField;
         private ComboBox cellsComboBox;
         private ComboBox staticCellsComboBox;
-        
+
         private Label lbCount;
-        
+
         private OpenFileDialog openFileDialog;
         private SaveFileDialog saveFileDialog;
         private Button btnNewGame;
@@ -37,7 +37,7 @@ namespace life
         private Label lblSpeedGame;
         private FlowLayoutPanel flpSettingField;
 
-        public LifeForm():base()
+        public LifeForm() : base()
         {
             InitializeComponent();
 
@@ -45,7 +45,7 @@ namespace life
             AutoScaleMode = AutoScaleMode.Font;
 
             InitPanelfield();
-            
+
             InitCellsComboBox(cellSize);
 
             InitButtons();
@@ -58,8 +58,14 @@ namespace life
             if (disposing && components != null)
             {
                 components.Dispose();
+
+                BitmapCells.Dispose();
+
+                bitmap.Dispose();
+
+                bitmapGraphics.Dispose();
             }
-                        
+
             base.Dispose(disposing);
         }
 
@@ -247,6 +253,8 @@ namespace life
             this.btnMakeAStep.TabIndex = 1;
             this.btnMakeAStep.Text = "Make a step";
             this.btnMakeAStep.UseVisualStyleBackColor = true;
+            this.btnMakeAStep.MouseDown += new System.Windows.Forms.MouseEventHandler(this.BtnMakeAStep_MouseDown);
+            this.btnMakeAStep.MouseUp += new System.Windows.Forms.MouseEventHandler(this.BtnMakeAStep_MouseUp);
             // 
             // btnPreviousStep
             // 
@@ -259,6 +267,8 @@ namespace life
             this.btnPreviousStep.TabIndex = 2;
             this.btnPreviousStep.Text = "Previous step";
             this.btnPreviousStep.UseVisualStyleBackColor = true;
+            this.btnPreviousStep.MouseDown += new System.Windows.Forms.MouseEventHandler(this.BtnPreviousStep_MouseDown);
+            this.btnPreviousStep.MouseUp += new System.Windows.Forms.MouseEventHandler(this.BtnPreviousStep_MouseUp);
             // 
             // btnSaveField
             // 

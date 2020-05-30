@@ -9,11 +9,7 @@ namespace life
     // отрисовка клетки
     interface IDraw
     {
-        //void Draw(Graphics g);
-
-        void Draw(Field field, Graphics g);
-
-        void Draw(Field field, Graphics g, BitmapCellsStorage b);
+        void Draw(Graphics g, BitmapCellsStorage b);
     }
 
     /// <summary>
@@ -101,7 +97,7 @@ namespace life
                 }
 
                 // make inactive
-                active = false; 
+                active = false;
             }
         }
 
@@ -130,45 +126,15 @@ namespace life
 
         public bool IsChangeStatus() => (Status != NewStatus);
 
-        // отрисовываем ячейку на битовой карте на указанном поле
-        public virtual void Draw(Field field, Graphics g)
+        public void Draw(Graphics g, BitmapCellsStorage b)
         {
-            // Координаты точки для отрисовки
-            int x = Location.X * field.CellSize;
-            int y = Location.Y * field.CellSize;
-
-            if (IsLive())
-            {
-                g.DrawImage(field.NormalCellBitmap, x, y, field.rectCellYes, GraphicsUnit.Pixel);
-            }
-            else
-            if (IsNoCell())
-            {
-                g.DrawImage(field.NormalCellBitmap, x, y, field.rectCellNo, GraphicsUnit.Pixel);
-            }
-            else
-            if (IsStatic())
-            {
-                g.DrawImage(field.StaticCellBitmap, x, y, field.rectCellYes, GraphicsUnit.Pixel);
-            }
-        }
-
-        public void Draw(Field field, Graphics g, BitmapCellsStorage b)
-        {
-            // Координаты точки для отрисовки
-            int x = Location.X * field.CellSize;
-            int y = Location.Y * field.CellSize;
-
             Bitmap bm = b.GetBitmap(Status);
 
-            if (IsNoCell())
-            {
-                g.DrawImage(bm, x, y, field.rectCellNo, GraphicsUnit.Pixel);
-            }
-            else
-            {
-                g.DrawImage(bm, x, y, field.rectCellYes, GraphicsUnit.Pixel);
-            }
+            // Координаты точки для отрисовки
+            int x = Location.X * bm.Width;
+            int y = Location.Y * bm.Height;
+
+            g.DrawImage(bm, x, y);
         }
 
         public int CompareTo(Cell other) => Location.CompareTo(other.Location);

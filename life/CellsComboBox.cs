@@ -74,11 +74,9 @@ namespace life
         {
             ComboBox comboBox = (ComboBox)sender;
 
-            field.BitmapStaticCellChanged((Bitmap)comboBox.SelectedItem);
+            BitmapCells.Change(null, (Bitmap)comboBox.SelectedItem);
 
-            field.DrawAll();
-
-            field.Draw();
+            field.DrawAll(bitmapGraphics, BitmapCells);
 
             panelField.Invalidate();
         }
@@ -87,11 +85,9 @@ namespace life
         {
             ComboBox comboBox = (ComboBox)sender;
 
-            field.BitmapCellChanged((Bitmap)comboBox.SelectedItem);
+            BitmapCells.Change((Bitmap)comboBox.SelectedItem, null);
 
-            field.DrawAll();
-
-            field.Draw();
+            field.DrawAll(bitmapGraphics, BitmapCells);
 
             panelField.Invalidate();
         }

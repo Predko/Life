@@ -9,6 +9,9 @@ namespace life
 {
     public partial class LifeForm : Form
     {
+        /// <summary>
+        /// Панель для отображения игрового поля.
+        /// </summary>
         private PanelField panelField;
 
         public void InitPanelfield()
@@ -32,7 +35,7 @@ namespace life
         {
             base.OnPaint(e);
 
-            field.Redraw(e.Graphics);
+            e.Graphics.DrawImage(bitmap, Point.Empty);
         }
     }
 

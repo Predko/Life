@@ -9,24 +9,25 @@ namespace life
 {
     public class LogOfSteps
     {
-        readonly Field currentField;
+        private readonly Field currentField;
 
         private readonly LinkedList<string> steps;
         private LinkedListNode<string> current;
 
+        public int Count => steps.Count;
 
         /// <summary>
-        /// Конструктор класса логирования шагов игры
+        /// Конструктор класса логирования шагов игры.
         /// </summary>
-        /// <param name="filename">Имя файла для записи шагов</param>
-        /// <param name="field">Текущее игровое поле</param>
-        public LogOfSteps(Field field)
+        /// <param name="filename">Имя файла для записи шагов.</param>
+        /// <param name="f">Логируемое игровое поле.</param>
+        public LogOfSteps(Field f)
         {
-            currentField = field;
-
             steps = new LinkedList<string>();
 
             current = steps.Last;
+
+            currentField = f;
         }
 
         public void Clear()
@@ -37,21 +38,13 @@ namespace life
 
         public void Add(string s) => current = steps.AddLast(s);
 
-        public bool IsBegin() => (current == null);
+        public bool IsLogEmpty() => (current == null);
 
         /// <summary>
-        /// 
-        /// cells - состояние ячеек на текущем ходу
-        /// Возвращает изменённый список
+        /// Восстанавливает состояние ячеек на предыдущем ходу.
         /// </summary>
-        /// <param name="currentCells"></param>
-        /// <returns></returns>
-
-        /// <summary>
-        /// Восстанавливает состояние ячеек на предыдущем ходу
-        /// </summary>
-        /// <param name="currentListCells">Список ячеек текущего хода</param>
-        /// <returns>false - если не удалось выполнить операцию</returns>
+        /// <param name="currentListCells">Список ячеек текущего хода.</param>
+        /// <returns>false - если не удалось выполнить операцию.</returns>
         public bool Previous(List<Cell> currentListCells)
         {
             // Проверяем не пуст ли лог
@@ -59,16 +52,16 @@ namespace life
             {
                 return true;   // Лог пуст
             }
-            
+
             // извлекаем список изменений клеток из журнала
             List<Cell> cellsFromLog = GetStep();
 
             if (cellsFromLog == null)
             {
-                MessageBox.Show("Не удалось извлечь данные из истории");
-                
+                MessageBox.Show("Не удалось извлечь данные из истории.");
+
                 Clear();
-                
+
                 return false;
             }
 
@@ -77,20 +70,20 @@ namespace life
             // и добавляем те, которые исчезли
             foreach (var cell in cellsFromLog)
             {
-                // Если клетка была добавлена на предыдущем ходе
-                // удаляем её с поля и из текущего списка активных клуток при ходе назад
-                if (cell.NewStatus == StatusCell.Yes) 
+                // Если клетка была добавлена на предыдущем ходу
+                // удаляем её с поля и из текущего списка активных клеток при ходе назад
+                if (cell.NewStatus == StatusCell.Yes)
                 {
                     int hashCode = cell.GetHashCode();
 
                     Cell foundCell = currentListCells.Find(c => c.GetHashCode() == hashCode);
-                    
+
                     if (foundCell == null)
                     {
-                        MessageBox.Show("Не соответствие истории и текущих ячеек");
+                        MessageBox.Show("Не соответствие истории и текущих ячеек.");
 
                         Clear();
-                        
+
                         return false;
                     }
 
@@ -112,7 +105,7 @@ namespace life
                 // добавим в список активных и на игровое поле
                 // и для отрисовки
                 if (cell.NewStatus == StatusCell.No)
-                {                                    
+                {
                     cell.active = true;
                     cell.Status = StatusCell.Yes;
                     cell.NewStatus = StatusCell.Yes;
@@ -137,17 +130,17 @@ namespace life
         /// <summary>
         /// Сохраняет изменения в ячейках на игровом поле из списка cells в список steps
         /// Формат:
-        ///    "Число ячеек":"'-' если удалена""координата X","Координата Y";"'-' если удалена""Координата X","Координата Y"; ...
+        ///    "Число ячеек":"'-' если удалена""координата X","Координата Y";"Координата X","Координата Y"; ...
         ///    Разделителями являются только ':' ',' и ';'. Например: "2:10,5;-1,2" - две ячейки, первая добавлена, вторая удалена
         /// </summary>
         /// <param name="cells">Список видимых ячеек на игровом поле</param>
         public void SetStep(List<Cell> cells)
         {
-            StringBuilder step = new StringBuilder (10 + cells.Count * 15);
+            StringBuilder step = new StringBuilder(10 + cells.Count * 15);
 
             int count = 0;
 
-            foreach(Cell cell in cells)
+            foreach (Cell cell in cells)
             {
                 // Ячейка изменит своё состояние?
                 if (cell.IsChangeStatus())
@@ -158,8 +151,8 @@ namespace life
                     {
                         x *= -1;    // ячейка удалена
                     }
-                
-                    step.Append ($"{x},{cell.Location.Y};");
+
+                    step.Append($"{x},{cell.Location.Y};");
 
                     count++;
                 }
@@ -187,7 +180,7 @@ namespace life
         {
             string[] step = steps.Last.Value.Split(":,;".ToCharArray());
 
-            List<Cell> cells = null;
+            List<Cell> cells;
 
             try
             {
@@ -210,7 +203,7 @@ namespace life
                     if (x < 0)
                     {
                         sc = StatusCell.No;
-                        x *= -1; 
+                        x *= -1;
                     }
                     else
                     {

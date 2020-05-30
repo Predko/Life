@@ -63,16 +63,6 @@ namespace life.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap _1NNN {
-            get {
-                object obj = ResourceManager.GetObject("1NNN", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap Cell1_01 {
             get {
                 object obj = ResourceManager.GetObject("Cell1_01", resourceCulture);

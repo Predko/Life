@@ -9,10 +9,12 @@ using life.Properties;
 
 namespace life
 {
+    internal enum ExitCodePreviousStep { Ok, NoSteps, Error }
+
     /// <summary>
     /// Игровое поле
     /// </summary>
-    public class Field : IDisposable
+    public class Field
     {
         public int width;
         public int height;
@@ -28,34 +30,12 @@ namespace life
         public float density;
 
         public Rectangle Rectangle { get => new Rectangle(0, 0, width, height); }
+
+        public int Count { get => field.Count; }
         /// <summary>
         /// Отступ от края игрового поля, где не будут располагаться клетки, кроме статичных клеток.
         /// </summary>
         private const int padding = 2;
-
-        public int CellSize { get; set; }
-        /// <summary>
-        /// Отображаемый размер игрового поля в пикселах
-        /// </summary>
-        public Rectangle Bounds { get; set; }
-
-        /// <summary>
-        /// Экземпляр типа Graphics для отрисовки на битовой карте
-        /// </summary>
-        Graphics bitmapGraphics;
-
-        /// <summary>
-        /// Битовая карта для отрисовки игрового поля
-        /// </summary>
-        public Bitmap bitmap;
-
-        public BitmapCellsStorage bitmapCells;
-
-        public Bitmap NormalCellBitmap;
-        public Bitmap StaticCellBitmap;
-
-        public Rectangle rectCellYes;
-        public Rectangle rectCellNo;
 
         // массив координат ячеек вокруг данной
         private readonly CellLocation[] nearestCellsLocation = new CellLocation[8];
@@ -83,9 +63,9 @@ namespace life
         /// <summary>
         /// Запись истории сделанных ходов.
         /// </summary>
-        private readonly LogOfSteps steps;
+        public LogOfSteps steps;
 
-        public Field(int width, int height, ICellArray cellArray, Bitmap normalCell, Bitmap staticCell, int cellSize = 15)
+        public Field(int width, int height, ICellArray cellArray)
         {
             this.height = height;
             this.width = width;
@@ -108,15 +88,26 @@ namespace life
             ListCellsForDraw = new List<Cell>();
 
             field = cellArray ?? new BinaryTreeCells();
+        }
 
-            steps = new LogOfSteps(this);
+        internal void SetLog(LogOfSteps log) => steps = log;
 
-            bitmapCells = new BitmapCellsStorage(normalCell, staticCell);
+        internal bool IsLogNotEmpty()
+        {
+            if (steps != null)
+            {
+                return (steps.Count != 0);
+            }
 
-            NormalCellBitmap = normalCell;
-            StaticCellBitmap = staticCell;
+            return false;
+        }
 
-            CellSize = cellSize;
+        internal void DrawChangedCells(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
+        {
+            foreach (Cell cell in ListCellsForDraw)
+            {
+                cell.Draw(bitmapGraphics, bitmapCells);
+            }
         }
 
         /// <summary>
@@ -126,67 +117,20 @@ namespace life
         internal void AddCellForNextStep(Cell cell) => NewListCells.Add(cell);
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="normalCell"></param>
-        /// <param name="staticCell"></param>
-        internal void ChangeBitmapCells(Bitmap normalCell, Bitmap staticCell)
-        {
-            if (bitmap != null)
-            {
-                bitmap.Dispose();
-            }
-
-            NormalCellBitmap.Dispose();
-
-            NormalCellBitmap = normalCell;
-
-            StaticCellBitmap.Dispose();
-
-            StaticCellBitmap = staticCell;
-        }
-
-        internal void BitmapCellChanged(Bitmap bmcell)
-        {
-            NormalCellBitmap.Dispose();
-
-            NormalCellBitmap = new Bitmap(bmcell, new Size(CellSize * 2, CellSize));
-        }
-
-        internal void BitmapStaticCellChanged(Bitmap bmcell)
-        {
-            StaticCellBitmap.Dispose();
-
-            StaticCellBitmap = new Bitmap(bmcell, new Size(CellSize * 2, CellSize));
-        }
-
-        internal void InitBitmap()
-        {
-
-            bitmap = new Bitmap(Bounds.Width, Bounds.Height);
-
-            if (bitmapGraphics != null)
-            {
-                bitmapGraphics.Dispose();
-            }
-
-            bitmapGraphics = Graphics.FromImage(bitmap);
-
-            FirstDrawFieldToBitmap();
-        }
-
-        /// <summary>
-        /// Очистка игрового поля - очистка хранилища ячеек, очистка лога шагов
+        /// Очистка игрового поля - очистка хранилища ячеек, очистка истории ходов
         /// </summary>
         private void Clear()
         {
             field.Clear();
 
-            steps.Clear();
+            if (steps != null)
+            {
+                steps.Clear();
+            }
         }
 
         /// <summary>
-        /// Добавляет клетку в список для отрисовки на следующем ходу
+        /// Добавляет клетку в список для отрисовки на следующем ходу.
         /// </summary>
         /// <param name="cell"></param>
         internal void AddToDraw(Cell cell)
@@ -194,49 +138,41 @@ namespace life
             ListCellsForDraw.Add(cell);
         }
 
-        public bool IsLogEmpty() => steps.IsBegin();
-
-        public virtual void FirstDrawFieldToBitmap()
+        /// <summary>
+        /// Перерисовывает всё игровое поле.
+        /// </summary>
+        /// <param name="bitmapGraphics"></param>
+        /// <param name="bitmapCells"></param>
+        public void DrawAll(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
         {
-            Size szbm = new Size(CellSize * 2, CellSize);
+            Bitmap bmNoCell = bitmapCells.GetBitmap(StatusCell.No);
 
-            NormalCellBitmap = new Bitmap(NormalCellBitmap, szbm);
-            StaticCellBitmap = new Bitmap(StaticCellBitmap, szbm);
-
-            rectCellYes = new Rectangle(0, 0, NormalCellBitmap.Width / 2, NormalCellBitmap.Height);
-            rectCellNo = new Rectangle(NormalCellBitmap.Width / 2, 0, NormalCellBitmap.Width / 2, NormalCellBitmap.Height);
-
-            DrawAll();
-        }
-
-        public void DrawAll()
-        {
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    bitmapGraphics.DrawImage(NormalCellBitmap, x * CellSize, y * CellSize, rectCellNo, GraphicsUnit.Pixel);
+                    Cell cell = field[x, y];
+
+                    if (cell != null)
+                    {
+                        cell.Draw(bitmapGraphics, bitmapCells);
+                    }
+                    else
+                    {
+                        bitmapGraphics.DrawImage(bmNoCell, x * bmNoCell.Width, y * bmNoCell.Height);
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Отрисовывает подготовленную битовую карту на форме.
-        /// </summary>
-        /// <param name="g"></param>
-        public void Redraw(Graphics g)
-        {
-            g.DrawImage(bitmap, Bounds);
-        }
-
-        /// <summary>
         /// Отрисовывает изменившиеся клетки игрового поля.
         /// </summary>
-        public void Draw()
+        public void Draw(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
         {
             foreach (Cell cell in field)
             {
-                cell.Draw(this, bitmapGraphics);
+                cell.Draw(bitmapGraphics, bitmapCells);
             }
         }
 
@@ -326,9 +262,16 @@ namespace life
         /// <summary>
         /// Ход назад.
         /// </summary>
-        /// <returns>true  если ещё есть записи в истории ходов.</returns>
-        internal bool PreviousStep()
+        /// <returns>ExitCodePreviousStep.Ok - если ещё есть записи в истории ходов.
+        /// ExitCodePreviousStep.NoSteps - если история пуста.
+        /// ExitCodePreviousStep.Error - если произошла ошибка.</returns>
+        internal ExitCodePreviousStep PreviousStep()
         {
+            if (steps == null || steps.IsLogEmpty())
+            {
+                return ExitCodePreviousStep.NoSteps;
+            }
+            
             ListCellsForDraw.Clear();
 
             // удаляем все не живые клетки с поля(активные клетки, вокруг живых)  
@@ -351,15 +294,7 @@ namespace life
 
                 PrepareField();
 
-                DrawAll();
-
-                return false;
-            }
-
-            // Отрисовка изменившихся ячеек
-            foreach (Cell cell in ListCellsForDraw)
-            {
-                cell.Draw(this, bitmapGraphics);
+                return ExitCodePreviousStep.Error;
             }
 
             CurrentListCells.Clear();
@@ -370,7 +305,7 @@ namespace life
                 AddNearestCells(cell);
             }
 
-            return !steps.IsBegin();
+            return ExitCodePreviousStep.Ok;
         }
 
         /// <summary>
@@ -401,12 +336,6 @@ namespace life
                 cell.ChangeStatus(this);
             }
 
-            // Отрисовка изменившихся ячеек
-            foreach (Cell cell in ListCellsForDraw)
-            {
-                cell.Draw(this, bitmapGraphics);
-            }
-
             CurrentListCells.Clear();
             CurrentListCells.AddRange(NewListCells);
 
@@ -430,8 +359,6 @@ namespace life
             PlaceBlock(block, CellLocation.Empty);
 
             PrepareField();
-
-            FirstDrawFieldToBitmap();
         }
 
         /// <summary>
@@ -656,41 +583,5 @@ namespace life
                 needNumberOfCells--;
             }
         }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // Для определения избыточных вызовов
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    bitmapGraphics.Dispose();
-                }
-
-                // TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить ниже метод завершения.
-                // TODO: задать большим полям значение NULL.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: переопределить метод завершения, только если Dispose(bool disposing) выше включает код для освобождения неуправляемых ресурсов.
-        // ~Field()
-        // {
-        //   // Не изменяйте этот код. Разместите код очистки выше, в методе Dispose(bool disposing).
-        //   Dispose(false);
-        // }
-
-        // Этот код добавлен для правильной реализации шаблона высвобождаемого класса.
-        public void Dispose()
-        {
-            // Не изменяйте этот код. Разместите код очистки выше, в методе Dispose(bool disposing).
-            Dispose(true);
-            // TODO: раскомментировать следующую строку, если метод завершения переопределен выше.
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 }
