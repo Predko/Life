@@ -12,94 +12,59 @@ namespace life
     /// <summary>
     /// Блок игрового поля.
     /// </summary>
-    internal class Block : IEnumerable<Cell>
+    public class Block : IEnumerable<Cell>
     {
+        private int minX, maxX;
+        private int minY, maxY;
+
         /// <summary>
         /// Размер блока.
         /// </summary>
-        public Size Size { get; private set; }
+        public Size Size => new Size(maxX - minX + 1, maxY - minY + 1);
+
+        /// <summary>
+        /// Прямоугольник, ограничивающий блок/
+        /// </summary>
+        public Rectangle Rectangle
+        {
+            get => new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
+            set
+            {
+                minX = value.X;
+                minY = value.Y;
+                maxX = value.X + value.Width;
+                maxY = value.Y + value.Height;
+            }
+        }
+
+        /// <summary>
+        /// Возвращает начальную точку прямоугольника, ограничивающего блок.
+        /// </summary>
+        public Point Location => new Point(minX, minY);
 
         /// <summary>
         /// Список ячеек игрового поля.
         /// </summary>
         private readonly List<Cell> cells;
 
-        public Block()
-        {
-            cells = new List<Cell>();
-        }
-
-        public Block(Field field)
-        {
-            cells = field.GetCells();
-
-            int minX, maxX;
-            int minY, maxY;
-
-            minX = maxX = cells.First().Location.X;
-            minY = maxY = cells.First().Location.Y;
-
-            // Находим минимальные и максимальные значения координат x и y
-            foreach (Cell cell in cells)
-            {
-                int x = cell.Location.X;
-                int y = cell.Location.Y;
-
-                if (x < minX)
-                    minX = x;
-                else
-                if (x > maxX)
-                    maxX = x;
-
-                if (y < minY)
-                    minY = y;
-                else
-                if (y > maxY)
-                    maxY = y;
-            }
-
-            Size = new Size(maxX - minX + 1, maxY - minY + 1);
-        }
 
         /// <summary>
-        /// Читает блок игрового поля из файла.
+        /// Корректируем координаты прямоугольника блока.
         /// </summary>
-        /// <param name="filename">Имя файла.</param>
-        /// <returns>Размер прочитанного поля.</returns>
-        public Size LoadFromFile(string filename)
+        /// <param name="cell">Добавляемая ячейка.</param>
+        private void AdjustRectangle(Cell cell)
         {
-            if (filename != null)
-            {
-                using (StreamReader reader = new StreamReader(filename))
-                {
-                    try
-                    {
-                        cells.Clear();
-
-                        int dx = ReadInt(reader);
-                        int dy = ReadInt(reader);
-
-                        int count = ReadInt(reader);
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            cells.Add(ReadCell(reader));
-                        }
-
-                        Size = new Size(dx, dy);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message + "\npublic void Block::LoadFromFile(string filename)");
-                    }
-                }
-            }
+            if (cell.Location.X < minX)
+                minX = cell.Location.X;
             else
-            {
-                Size = Size.Empty;
-            }
+            if (cell.Location.X > maxX)
+                maxX = cell.Location.X;
 
-            return Size;
+            if (cell.Location.Y < minY)
+                minY = cell.Location.Y;
+            else
+            if (cell.Location.Y > maxY)
+                maxY = cell.Location.Y;
         }
 
         /// <summary>
@@ -146,6 +111,120 @@ namespace life
             sr.Read();  // разделитель ';'
 
             return cell;
+        }
+
+
+        public Block()
+        {
+            cells = new List<Cell>();
+
+            minX = minY = maxX = maxY = 0;
+        }
+
+        public Block(Field field)
+        {
+            cells.AddRange(field.GetCells());
+        }
+
+        /// <summary>
+        /// Смещаем блок в указанную точку.
+        /// </summary>
+        /// <param name="start">Новая начальная точка блока.</param>
+        public void SetStartPoint(Point start)
+        {
+            // Вычисляем смещение координат.
+            int dx = start.X - minX;
+            int dy = start.Y - minY;
+
+            foreach (Cell cell in cells)
+            {
+                cell.Location = new CellLocation(cell.Location.X + dx, cell.Location.Y + dy);
+            }
+
+            minX = start.X;
+            minY = start.Y;
+        }
+
+        /// <summary>
+        /// Добавляем ячейку в блок
+        /// </summary>
+        /// <param name="cell"></param>
+        public void Add(Cell cell)
+        {
+            // Проверяем, нужна ли первичная инициализация
+            // минимальных и максимальных значений координат. 
+            if (cells.Count == 0)
+            {
+                minX = maxX = cell.Location.X;
+                minY = maxY = cell.Location.Y;
+            }
+            else
+            {
+                AdjustRectangle(cell);
+            }
+
+            cells.Add(cell);
+        }
+
+        /// <summary>
+        /// Добавить список ячеек.
+        /// </summary>
+        /// <param name="rangeCells"></param>
+        public void AddRange(IEnumerable<Cell> rangeCells)
+        {
+            foreach (Cell cell in rangeCells)
+            {
+                Add(cell);
+            }
+        }
+
+        /// <summary>
+        /// Очистка содержимого блока.
+        /// </summary>
+        public void Clear()
+        {
+            cells.Clear();
+
+            Rectangle = Rectangle.Empty;
+        }
+
+        /// <summary>
+        /// Читает блок игрового поля из файла.
+        /// </summary>
+        /// <param name="filename">Имя файла.</param>
+        /// <returns>Размер прочитанного поля.</returns>
+        public Size LoadFromFile(string filename)
+        {
+            if (filename != null)
+            {
+                using (StreamReader reader = new StreamReader(filename))
+                {
+                    try
+                    {
+                        cells.Clear();
+
+                        int dx = ReadInt(reader);
+                        int dy = ReadInt(reader);
+
+                        int count = ReadInt(reader);
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            Add(ReadCell(reader));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message + "\npublic void Block::LoadFromFile(string filename)");
+                    }
+                }
+            }
+            else
+            {
+                Rectangle = Rectangle.Empty;
+            }
+
+            return Size;
         }
 
         /// <summary>

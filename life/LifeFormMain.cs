@@ -253,6 +253,13 @@ namespace life
             ResizeField(size.Width, size.Height);
         }
 
+        /// <summary>
+        /// Создаёт новое игровое поле заданного размера, плотности и границей.
+        /// </summary>
+        /// <param name="dx">Ширина.</param>
+        /// <param name="dy">Высота.</param>
+        /// <param name="density">Плотность.</param>
+        /// <param name="isBorderCell">Наличие границы из статичных ячеек.</param>
         public void NewField(int dx, int dy, float density, bool isBorderCell)
         {
             field.SettingCells(dx, dy, density, isBorderCell);

@@ -32,12 +32,15 @@ namespace life
         public Rectangle Rectangle { get => new Rectangle(0, 0, width, height); }
 
         public int Count { get => field.Count; }
+
         /// <summary>
         /// Отступ от края игрового поля, где не будут располагаться клетки, кроме статичных клеток.
         /// </summary>
         private const int padding = 2;
 
-        // массив координат ячеек вокруг данной
+        /// <summary>
+        /// массив координат ячеек вокруг данной
+        /// </summary>
         private readonly CellLocation[] nearestCellsLocation = new CellLocation[8];
 
         /// <summary>
@@ -87,21 +90,14 @@ namespace life
 
             ListCellsForDraw = new List<Cell>();
 
-            field = cellArray ?? new BinaryTreeCells();
+            field = cellArray ?? new CellArray(width, height);
         }
 
         internal void SetLog(LogOfSteps log) => steps = log;
 
-        internal bool IsLogNotEmpty()
-        {
-            if (steps != null)
-            {
-                return (steps.Count != 0);
-            }
-
-            return false;
-        }
-
+        /// <summary>
+        /// Отрисовывает изменившиеся клетки игрового поля.
+        /// </summary>
         internal void DrawChangedCells(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
         {
             foreach (Cell cell in ListCellsForDraw)
@@ -145,11 +141,33 @@ namespace life
         /// <param name="bitmapCells"></param>
         public void DrawAll(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
         {
+            Draw(bitmapGraphics, bitmapCells, Rectangle);
+        }
+
+        /// <summary>
+        /// Отрисовывает активные клетки игрового поля.
+        /// </summary>
+        public void Draw(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
+        {
+            foreach (Cell cell in field)
+            {
+                cell.Draw(bitmapGraphics, bitmapCells);
+            }
+        }
+
+        /// <summary>
+        /// Перерисовывает все ячейки игрового поля(любого типа).
+        /// </summary>
+        /// <param name="bitmapGraphics"></param>
+        /// <param name="bitmapCells"></param>
+        /// <param name="rect">Ограничивающий прямоугольник в кординатах игрового поля.</param>
+        public void Draw(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells, Rectangle rect)
+        {
             Bitmap bmNoCell = bitmapCells.GetBitmap(StatusCell.No);
 
-            for (int y = 0; y < height; y++)
+            for (int x = rect.X; x < (rect.X + width); x++)
             {
-                for (int x = 0; x < width; x++)
+                for (int y = rect.Y; y < (rect.Y + height); y++)
                 {
                     Cell cell = field[x, y];
 
@@ -166,29 +184,24 @@ namespace life
         }
 
         /// <summary>
-        /// Отрисовывает изменившиеся клетки игрового поля.
-        /// </summary>
-        public void Draw(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
-        {
-            foreach (Cell cell in field)
-            {
-                cell.Draw(bitmapGraphics, bitmapCells);
-            }
-        }
-
-        /// <summary>
         /// Добавляет клетки на игровое поле.
         /// </summary>
         /// <param name="cell"></param>
         public void AddCell(Cell cell) => field.Add(cell);
 
         /// <summary>
-        /// Удаляет клетки с игрового поля(кроме статичных клеток).
+        /// Удаляет клетку с игрового поля.
         /// </summary>
         /// <param name="cell"></param>
-        public void RemoveCell(Cell cell)
+        public void RemoveCell(Cell cell) => field.Remove(cell);
+
+        /// <summary>
+        /// Удаляет с игрового поля клетки, указанные в перечислении.
+        /// </summary>
+        /// <param name="cells">Список клеток для удаления.</param>
+        public void RemoveCells(IEnumerable<Cell> cells)
         {
-            if (!cell.IsStatic())   // не удаляем из списка статичные клетки
+            foreach (Cell cell in cells)
             {
                 field.Remove(cell);
             }
@@ -271,13 +284,13 @@ namespace life
             {
                 return ExitCodePreviousStep.NoSteps;
             }
-            
+
             ListCellsForDraw.Clear();
 
             // удаляем все не живые клетки с поля(активные клетки, вокруг живых)  
             foreach (Cell cell in CurrentListCells)
             {
-                if (!cell.IsLive())
+                if (!cell.IsLive() && !cell.IsStatic())
                 {
                     RemoveCell(cell);
                 }
@@ -367,7 +380,7 @@ namespace life
         /// </summary>
         /// <param name="block">Блок ячеек.</param>
         /// <param name="begin">Позиция на поле для размещения.</param>
-        private void PlaceBlock(Block block, CellLocation begin)
+        public void PlaceBlock(Block block, CellLocation begin)
         {
             foreach (Cell cell in block)
             {
@@ -387,7 +400,8 @@ namespace life
 
             foreach (Cell cell in field)
             {
-                if (cell.IsLive() || cell.IsStatic())
+                if ((cell.IsLive() || cell.IsStatic()) &&
+                    fieldRect.Contains(cell.Location.X, cell.Location.Y))
                 {
                     listCells.Add(cell);
                 }

@@ -92,12 +92,16 @@
     <Compile Include="PanelField.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="PointExtentionMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SelectingEvent.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="SettingField.cs">
       <SubType>Form</SubType>

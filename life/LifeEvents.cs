@@ -8,11 +8,6 @@ namespace life
     public partial class LifeForm : Form
     {
         /// <summary>
-        /// Указывает текущую установку направления таймера. true - вперёд, false - назад(предыдущий ход).
-        /// </summary>
-        private bool isTimerNext = true;
-
-        /// <summary>
         /// Используется для определения, была ли отпущена клавиша мыши, после нажатия и удержания.
         /// </summary>
         private bool isMouseKeyUp;
@@ -21,6 +16,11 @@ namespace life
         /// время удержания нажатой клавиши мыши
         /// </summary>
         private readonly int pauseKeyDown = 500;
+
+        /// <summary>
+        /// Указывает текущую установку направления таймера. true - вперёд, false - назад(предыдущий ход).
+        /// </summary>
+        private bool isTimerNext = true;
 
         /// <summary>
         /// Указывает текущую установку направления таймера. false - вперёд, true - назад(предыдущий ход).
@@ -51,6 +51,9 @@ namespace life
             }
         }
 
+        /// <summary>
+        /// Запускает или останавливает игру.
+        /// </summary>
         private void PlayStartStop()
         {
             if (btnStartStop.Text == text_start)
@@ -121,6 +124,12 @@ namespace life
             btnMakeAStep.MouseDown += BtnMakeAStep_MouseDown;
         }
 
+        /// <summary>
+        /// Если кнопка мыши была нажата в течении более чем pauseKeyDown миллисек.,
+        /// запускает игру с помощью setTimer.
+        /// </summary>
+        /// <param name="setTimer">Метод запуска таймера игры.</param>
+        /// <param name="handlerEnable">Метод, восстанавливающий обработчик событий кнопки, если запуск не произошёл.</param>
         private async void TurnOnMoves(Action setTimer, Action handlerEnable)
         {
             await Task.Run(() => Thread.Sleep(pauseKeyDown));
@@ -139,7 +148,7 @@ namespace life
         }
 
         /// <summary>
-        /// При удержании кнопки нажатой pauseKeyDown секунды, переходит режим непрерывных ходов вперёд.
+        /// При удержании кнопки нажатой pauseKeyDown миллисекунд, переходит режим непрерывных ходов вперёд.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -337,6 +346,11 @@ namespace life
             panelField.Invalidate();
         }
 
+        /// <summary>
+        /// Обработчик событий с клавиатуры.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void LifeForm_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace life
 {
@@ -16,6 +17,7 @@ namespace life
         }
 
 
+        public Point ToPoint() => new Point(X, Y);
 
         public int CompareTo(CellLocation fl) => GetHashCode() - fl.GetHashCode();
 

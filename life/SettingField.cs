@@ -28,6 +28,7 @@ namespace life
         /// Индекс обычной клетки в ComboBox при загрузке данной формы.
         /// </summary>
         private int indexCell;
+        
         /// <summary>
         /// Индекс статичной клетки в ComboBox при загрузке данной формы.
         /// </summary>

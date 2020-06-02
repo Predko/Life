@@ -29,13 +29,12 @@ namespace life
             panelField.Margin = Padding.Empty;
 
             panelField.Paint += PanelField_Paint;
-        }
 
-        private void PanelField_Paint(object sender, PaintEventArgs e)
-        {
-            base.OnPaint(e);
+            panelField.LostFocus += PanelField_LostFocus;
 
-            e.Graphics.DrawImage(bitmap, Point.Empty);
+            panelField.MouseEnter += PanelField_MouseEnter;
+
+            isSelectionMode = false;
         }
     }
 
