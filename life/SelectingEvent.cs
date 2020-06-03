@@ -20,7 +20,8 @@ namespace life
         /// </summary>
         private Point endSelection;
 
-        #region Округление кординат и размера.
+        #region Округление координат и размера.
+
         /// <summary>
         /// Округляет число вниз, кратно указанной величине.
         /// </summary>
@@ -74,32 +75,37 @@ namespace life
             Width = Ceiling(width, multiplicity),
             Height = Ceiling(height, multiplicity)
         };
+
         #endregion
 
         /// <summary>
-        /// Прямоугольник выделения.
+        /// Возвращает прямоугольник между точками startSelection и endSelection,
+        /// кратный размеру клетки.
         /// </summary>
-        private Rectangle Selection
+        private Rectangle Selection => GetSelection(startSelection, endSelection);
+
+        /// <summary>
+        /// Возвращает прямоугольник между точками start и end,
+        /// кратный размеру клетки cellSize.
+        /// </summary>
+        private Rectangle GetSelection(Point start, Point end)
         {
-            get
+            CalcMinCoordinateAndSize(out int minX, out int maxX, start.X, end.X);
+
+            CalcMinCoordinateAndSize(out int minY, out int maxY, start.Y, end.Y);
+
+            Rectangle r = new Rectangle()
             {
-                CalcMinCoordinateAndSize(out int minX, out int maxX, startSelection.X, endSelection.X);
+                Location = new Point(minX, minY),
+                Size = new Size(maxX - minX, maxY - minY)
+            };
 
-                CalcMinCoordinateAndSize(out int minY, out int maxY, startSelection.Y, endSelection.Y);
-
-                Rectangle r = new Rectangle()
-                {
-                    Location = new Point(minX, minY),
-                    Size = new Size(maxX - minX + 1, maxY - minY + 1)
-                };
-
-                return r;
-            }
+            return r;
         }
 
         private Rectangle oldSelection = Rectangle.Empty;
 
-        private Bitmap bitmapSelection;
+        private Bitmap SavedBitmapField;
 
         /// <summary>
         /// Определяет минимальную и максимальную координату из (startCoord,endCoord),
@@ -156,6 +162,7 @@ namespace life
         /// Выбранный блок ячеек.
         /// </summary>
         private Block selectedCells;
+        private StatusCell currentCellStatus;
 
         /// <summary>
         /// Начало процесса выбора прямоугольного блока игрового поля.
@@ -169,10 +176,10 @@ namespace life
 
             endSelection = startSelection;
 
-            if (bitmapSelection == null)
+            if (SavedBitmapField == null)
             {
                 // Сохраняем текущее изображение поля(bitmap).
-                bitmapSelection = new Bitmap(bitmap);
+                SavedBitmapField = new Bitmap(bitmap);
             }
             else
             {
@@ -286,13 +293,13 @@ namespace life
         }
 
         /// <summary>
-        /// Перерисовываем исходное изображение в последнем выбранном прямоугольнике
+        /// Восстанавливает исходное изображение в последнем выбранном прямоугольнике
         /// </summary>
         private void RedrawOldSelection()
         {
-            if (bitmapSelection != null)
+            if (SavedBitmapField != null)
             {
-                bitmapGraphics.DrawImage(bitmapSelection, oldSelection.X, oldSelection.Y, oldSelection, GraphicsUnit.Pixel);
+                bitmapGraphics.DrawImage(SavedBitmapField, oldSelection.X, oldSelection.Y, oldSelection, GraphicsUnit.Pixel);
             }
         }
 
@@ -311,27 +318,52 @@ namespace life
 
                     panelField.Invalidate(oldSelection);
 
-                    bitmapSelection.Dispose();
+                    SavedBitmapField.Dispose();
 
-                    bitmapSelection = null;
+                    SavedBitmapField = null;
                 }
 
                 selectedCells.Clear();
-
             }
         }
 
         private void PanelField_MouseClick(object sender, MouseEventArgs e)
         {
-            if (isSelectionMode && MouseButtons != MouseButtons.None)
+            if (e.Button == MouseButtons.Left)
             {
-                isSelectionMode = false;
-
-                // Восстанавливаем поле после предыдущего прямоугольника выбора.
+                if (isSelectionMode == false)
                 {
-                    RedrawOldSelection();
+                    //Rectangle r = GetSelection(e.Location, e.Location);
 
-                    panelField.Invalidate(oldSelection);
+                    //Rectangle fieldRect = new Rectangle()
+                    //{
+                    //    Location = new Point(r.X / cellSize, r.Y / cellSize),
+                    //    Width = r.Width / cellSize,
+                    //    Height = r.Height / cellSize
+                    //};
+
+                    //CellLocation cellLocation = new CellLocation(fieldRect.X , fieldRect.Y);
+
+                    //Cell cell = field.GetCell(cellLocation);
+
+                    //if (cell == null || cell.IsNoCell())
+                    //{
+                    //    cell = new Cell(cellLocation)
+                    //    {
+                    //        Status = currentCellStatus,
+                    //        NewStatus = StatusCell.Yes,
+                    //        active = true
+                    //    };
+
+                    //    field.AddAndPrepareCell(cell);
+                    //    field.Draw(bitmapGraphics, BitmapCells, fieldRect);
+                    //}
+                    //else
+                    //{
+                    //    field.RemoveAndPrepareCell(cell);
+                    //}
+
+                    //panelField.Invalidate(fieldRect);
                 }
             }
         }

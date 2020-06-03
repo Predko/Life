@@ -96,6 +96,13 @@ namespace life
         internal void SetLog(LogOfSteps log) => steps = log;
 
         /// <summary>
+        /// Возвращает клетку игрового поля с данными координатами.
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public Cell GetCell(CellLocation location) => field[location.X, location.Y];
+
+        /// <summary>
         /// Отрисовывает изменившиеся клетки игрового поля.
         /// </summary>
         internal void DrawChangedCells(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
@@ -451,6 +458,33 @@ namespace life
             {
                 AddNearestCells(cell);
             }
+        }
+
+        public void AddAndPrepareCell(Cell cell)
+        {
+            Cell c = field[cell.Location.X, cell.Location.Y];
+
+            if (c != null && c.IsNoCell())
+            {
+                field.Remove(c);
+            }
+
+            field.Add(cell);
+
+            NewListCells.Add(cell);
+
+            CurrentListCells.Add(cell);
+
+            AddNearestCells(cell);
+        }
+
+        public void RemoveAndPrepareCell(Cell cell)
+        {
+            field.Remove(cell);
+
+            NewListCells.Remove(cell);
+
+            CurrentListCells.Remove(cell);
         }
 
         public void GospersGliderGun(short x0, short y0)
