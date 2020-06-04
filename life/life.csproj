@@ -103,6 +103,9 @@
     <Compile Include="SelectingEvent.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SelectionMode.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SettingField.cs">
       <SubType>Form</SubType>
     </Compile>

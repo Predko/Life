@@ -41,11 +41,11 @@ namespace life
         public bool IsLogEmpty() => (current == null);
 
         /// <summary>
-        /// Восстанавливает состояние ячеек на предыдущем ходу.
+        /// Восстанавливает состояние клеток на предыдущем ходу.
         /// </summary>
-        /// <param name="currentListCells">Список ячеек текущего хода.</param>
+        /// <param name="newListCells">Список живых и статичных клеток текущего хода.</param>
         /// <returns>false - если не удалось выполнить операцию.</returns>
-        public bool Previous(List<Cell> currentListCells)
+        public bool Previous(List<Cell> newListCells)
         {
             // Проверяем не пуст ли лог
             if (current == null)
@@ -76,11 +76,11 @@ namespace life
                 {
                     int hashCode = cell.GetHashCode();
 
-                    Cell foundCell = currentListCells.Find(c => c.GetHashCode() == hashCode);
+                    Cell foundCell = newListCells.Find(c => c.GetHashCode() == hashCode);
 
                     if (foundCell == null)
                     {
-                        MessageBox.Show("Не соответствие истории и текущих ячеек.");
+                        MessageBox.Show("Не соответствие истории и текущих клеток.");
 
                         Clear();
 
@@ -94,7 +94,7 @@ namespace life
 
                     // удаляем клетку с поля и из списка активных
                     // добавляем в список для отрисовки
-                    currentListCells.Remove(foundCell);
+                    newListCells.Remove(foundCell);
 
                     currentField.RemoveCell(foundCell);
 
@@ -110,7 +110,7 @@ namespace life
                     cell.Status = StatusCell.Yes;
                     cell.NewStatus = StatusCell.Yes;
 
-                    currentListCells.Add(cell);
+                    newListCells.Add(cell);
 
                     currentField.AddCell(cell);
 
@@ -128,12 +128,12 @@ namespace life
         }
 
         /// <summary>
-        /// Сохраняет изменения в ячейках на игровом поле из списка cells в список steps
+        /// Сохраняет изменения в клетках на игровом поле из списка cells в список steps
         /// Формат:
-        ///    "Число ячеек":"'-' если удалена""координата X","Координата Y";"Координата X","Координата Y"; ...
-        ///    Разделителями являются только ':' ',' и ';'. Например: "2:10,5;-1,2" - две ячейки, первая добавлена, вторая удалена
+        ///    "Число клеток":"'-' если удалена""координата X","Координата Y";"Координата X","Координата Y"; ...
+        ///    Разделителями являются только ':' ',' и ';'. Например: "2:10,5;-1,2" - две клетки, первая добавлена, вторая удалена
         /// </summary>
-        /// <param name="cells">Список видимых ячеек на игровом поле</param>
+        /// <param name="cells">Список видимых клеток на игровом поле</param>
         public void SetStep(List<Cell> cells)
         {
             StringBuilder step = new StringBuilder(10 + cells.Count * 15);
@@ -142,14 +142,14 @@ namespace life
 
             foreach (Cell cell in cells)
             {
-                // Ячейка изменит своё состояние?
-                if (cell.IsChangeStatus())
+                // Клетка изменит своё состояние?
+                if (cell.IsChangeStatus)
                 {
                     int x = cell.Location.X;
 
                     if (cell.NewStatus == StatusCell.No)
                     {
-                        x *= -1;    // ячейка удалена
+                        x *= -1;    // клетка удалена
                     }
 
                     step.Append($"{x},{cell.Location.Y};");
@@ -171,11 +171,11 @@ namespace life
         }
 
         /// <summary>
-        /// Возвращает список ячеек cells изменённых на предыдущем ходу.
+        /// Возвращает список клеток cells изменённых на предыдущем ходу.
         /// Если не было изменений, возвращает пустой список.
         /// null - если была ошибка
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Список клеток.</returns>
         private List<Cell> GetStep()
         {
             string[] step = steps.Last.Value.Split(":,;".ToCharArray());
@@ -199,7 +199,7 @@ namespace life
 
                     StatusCell sc;
 
-                    // если x отрицательна, ячейка была удалена
+                    // если x отрицательна, клетка была удалена
                     if (x < 0)
                     {
                         sc = StatusCell.No;

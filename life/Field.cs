@@ -9,7 +9,7 @@ using life.Properties;
 
 namespace life
 {
-    internal enum ExitCodePreviousStep { Ok, NoSteps, Error }
+    public enum ExitCodePreviousStep { Ok, NoSteps, Error }
 
     /// <summary>
     /// Игровое поле
@@ -39,22 +39,26 @@ namespace life
         private const int padding = 2;
 
         /// <summary>
-        /// массив координат ячеек вокруг данной
+        /// массив координат клеток вокруг данной
         /// </summary>
         private readonly CellLocation[] nearestCellsLocation = new CellLocation[8];
 
         /// <summary>
-        /// хранилище ячеек игрового поля
+        /// хранилище клеток игрового поля
         /// </summary>
         private readonly ICellArray field;
 
         /// <summary>
-        /// Список активных клеток текущего хода
+        /// Список активных клеток текущего хода.
+        /// Это:
+        /// - нормальные и статичные клетки.
+        /// - клетки, вокруг нормальных клеток. Их Status = StatusCell.NoCell.
+        /// Все эти клетки с установленной переменной active = true.
         /// </summary>
-        private readonly List<Cell> CurrentListCells;
+        private readonly List<Cell> ListActiveCells;
 
         /// <summary>
-        /// Список активных клеток для следующего хода
+        /// Список живых и статичных клеток для следующего хода
         /// </summary>
         private readonly List<Cell> NewListCells;
 
@@ -85,7 +89,7 @@ namespace life
             nearestCellsLocation[6].X = 1; nearestCellsLocation[6].Y = 0;
             nearestCellsLocation[7].X = 1; nearestCellsLocation[7].Y = 1;
 
-            CurrentListCells = new List<Cell>();
+            ListActiveCells = new List<Cell>();
             NewListCells = new List<Cell>();
 
             ListCellsForDraw = new List<Cell>();
@@ -93,7 +97,7 @@ namespace life
             field = cellArray ?? new CellArray(width, height);
         }
 
-        internal void SetLog(LogOfSteps log) => steps = log;
+        public void SetLog(LogOfSteps log) => steps = log;
 
         /// <summary>
         /// Возвращает клетку игрового поля с данными координатами.
@@ -105,7 +109,7 @@ namespace life
         /// <summary>
         /// Отрисовывает изменившиеся клетки игрового поля.
         /// </summary>
-        internal void DrawChangedCells(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
+        public void DrawChangedCells(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
         {
             foreach (Cell cell in ListCellsForDraw)
             {
@@ -114,13 +118,7 @@ namespace life
         }
 
         /// <summary>
-        /// Добавляет ячейку в список для следующего хода.
-        /// </summary>
-        /// <param name="cell">Добавляемая ячейка.</param>
-        internal void AddCellForNextStep(Cell cell) => NewListCells.Add(cell);
-
-        /// <summary>
-        /// Очистка игрового поля - очистка хранилища ячеек, очистка истории ходов
+        /// Очистка игрового поля - очистка хранилища клеток, очистка истории ходов
         /// </summary>
         private void Clear()
         {
@@ -136,7 +134,7 @@ namespace life
         /// Добавляет клетку в список для отрисовки на следующем ходу.
         /// </summary>
         /// <param name="cell"></param>
-        internal void AddToDraw(Cell cell)
+        public void AddToDraw(Cell cell)
         {
             ListCellsForDraw.Add(cell);
         }
@@ -163,7 +161,7 @@ namespace life
         }
 
         /// <summary>
-        /// Перерисовывает все ячейки игрового поля(любого типа).
+        /// Перерисовывает все клетки игрового поля(любого типа).
         /// </summary>
         /// <param name="bitmapGraphics"></param>
         /// <param name="bitmapCells"></param>
@@ -172,9 +170,9 @@ namespace life
         {
             Bitmap bmNoCell = bitmapCells.GetBitmap(StatusCell.No);
 
-            for (int x = rect.X; x < (rect.X + width); x++)
+            for (int x = rect.X; x < (rect.X + rect.Width); x++)
             {
-                for (int y = rect.Y; y < (rect.Y + height); y++)
+                for (int y = rect.Y; y < (rect.Y + rect.Height); y++)
                 {
                     Cell cell = field[x, y];
 
@@ -231,10 +229,10 @@ namespace life
 
                     field[x + i.X, y + i.Y] = currentCell;
 
-                    CurrentListCells.Add(currentCell);
+                    ListActiveCells.Add(currentCell);
                 }
                 else
-                if (currentCell.IsStatic())
+                if (currentCell.IsStatic)
                 {
                     continue;
                 }
@@ -248,29 +246,29 @@ namespace life
         private void AddNearestCells(Cell cell) => AddNearestCells(cell.Location.X, cell.Location.Y);
 
         /// <summary>
-        /// Подсчёт живых ячеек вокруг данной.
+        /// Подсчёт живых клеток вокруг клетки с указанными координатами.
         /// </summary>
         /// <param name="x">Координата x клетки.</param>
         /// <param name="y">Координата y клетки.</param>
         /// <returns>Число живых клеток, примыкающих к данной.</returns>
-        internal int NumberLiveCells(int x, int y)
+        private int NumberLiveCells(int x, int y)
         {
 
-            int count = 0;   // счётчик живых ячеек вокруг данной
+            int count = 0;   // счётчик живых клеток вокруг данной
 
-            foreach (CellLocation loc in nearestCellsLocation)
+            foreach (CellLocation location in nearestCellsLocation)
             {
-                Cell currentcell = field[x + loc.X, y + loc.Y];
+                Cell currentcell = field[x + location.X, y + location.Y];
 
                 if (currentcell == null)
                     continue;                   // клетки нет
 
-                if (currentcell.IsStatic()) // Статичная клетка(стенка)
+                if (currentcell.IsStatic) // Статичная клетка(стенка)
                 {
                     return 5;   // клетки рядом с ней должны погибнуть
                 }
 
-                if (currentcell.IsLive())     // если найденная клетка живая - увеличиваем счётчик
+                if (currentcell.IsLive)     // если найденная клетка живая - увеличиваем счётчик
                 {
                     count++;
                 }
@@ -280,12 +278,19 @@ namespace life
         }
 
         /// <summary>
+        /// Подсчёт живых клеток вокруг данной.
+        /// </summary>
+        /// <param name="cell">клетка.</param>
+        /// <returns>Число живых клеток, примыкающих к данной.</returns>
+        private int NumberLiveCells(Cell cell) => NumberLiveCells(cell.Location.X, cell.Location.Y);
+
+        /// <summary>
         /// Ход назад.
         /// </summary>
         /// <returns>ExitCodePreviousStep.Ok - если ещё есть записи в истории ходов.
         /// ExitCodePreviousStep.NoSteps - если история пуста.
         /// ExitCodePreviousStep.Error - если произошла ошибка.</returns>
-        internal ExitCodePreviousStep PreviousStep()
+        public ExitCodePreviousStep PreviousStep()
         {
             if (steps == null || steps.IsLogEmpty())
             {
@@ -295,9 +300,9 @@ namespace life
             ListCellsForDraw.Clear();
 
             // удаляем все не живые клетки с поля(активные клетки, вокруг живых)  
-            foreach (Cell cell in CurrentListCells)
+            foreach (Cell cell in ListActiveCells)
             {
-                if (!cell.IsLive() && !cell.IsStatic())
+                if (!cell.IsLive && !cell.IsStatic)
                 {
                     RemoveCell(cell);
                 }
@@ -317,8 +322,8 @@ namespace life
                 return ExitCodePreviousStep.Error;
             }
 
-            CurrentListCells.Clear();
-            CurrentListCells.AddRange(NewListCells);
+            ListActiveCells.Clear();
+            ListActiveCells.AddRange(NewListCells);
 
             foreach (Cell cell in NewListCells)
             {
@@ -329,9 +334,81 @@ namespace life
         }
 
         /// <summary>
+        /// Анализ следующего шага.
+        /// </summary>
+        private void AnalysisNextStep(Cell cell)
+        {
+            int numberNearest = NumberLiveCells(cell);
+
+            // Новое состояние клетки приравниваем к старому
+            cell.NewStatus = cell.Status;
+
+            if (numberNearest == 3)
+            {
+                if (!cell.IsLive)          // клетки нет
+                {
+                    // клетка появится
+                    cell.NewStatus = StatusCell.Yes;
+                }
+
+                NewListCells.Add(cell);
+            }
+            else
+            if (numberNearest == 2)
+            {
+                if (cell.IsLive)
+                {
+                    // клетка остаётся на следующий ход
+                    NewListCells.Add(cell);
+                }
+                else
+                {
+                    // делаем неактивной
+                    cell.active = false;
+                }
+            }
+            else
+            {
+                if (cell.IsLive)   // клетка есть
+                {
+                    // клетка исчезает
+                    cell.NewStatus = StatusCell.No;
+                }
+
+                // make inactive
+                cell.active = false;
+            }
+        }
+
+        /// <summary>
+        /// Меняем состояние клетки м зависимости от произведённого ранее анализа.
+        /// </summary>
+        private void ChangeStatus(Cell cell)
+        {
+            if (cell.IsChangeStatus)
+            {
+                // клетка должна появиться.
+                if (cell.NewStatus == StatusCell.Yes)
+                {
+                    AddCell(cell);
+                }
+
+                cell.Status = cell.NewStatus;
+
+                AddToDraw(cell);
+            }
+
+            // неактивные(погибшие) клетки удаляем с поля.
+            if (!cell.IsActive)
+            {
+                RemoveCell(cell);
+            }
+        }
+
+        /// <summary>
         /// Ход вперёд.
         /// </summary>
-        internal void NextStep()
+        public void NextStep()
         {
             // очищаем списки для клеток следующего хода и отрисовки
             NewListCells.Clear();
@@ -339,27 +416,27 @@ namespace life
 
             // рассчитываем состояние клеток для следующего шага
             // Заносим клетки в список клеток следующего шага - NewListCells
-            foreach (Cell cell in CurrentListCells)
+            foreach (Cell cell in ListActiveCells)
             {
-                cell.AnalysisNextStep(this);
+                AnalysisNextStep(cell);
             }
 
             // Сохраняем изменения клеток на текущем ходе
             if (steps != null)
             {
-                steps.SetStep(CurrentListCells);
+                steps.SetStep(ListActiveCells);
             }
 
             // фиксируем изменения клеток, рассчитанных при анализе
-            foreach (Cell cell in CurrentListCells)
+            foreach (Cell cell in ListActiveCells)
             {
-                cell.ChangeStatus(this);
+                ChangeStatus(cell);
             }
 
-            CurrentListCells.Clear();
-            CurrentListCells.AddRange(NewListCells);
+            ListActiveCells.Clear();
+            ListActiveCells.AddRange(NewListCells);
 
-            // Подготавливаем список текущих клеток, добавляя в него клетки вокруг живых
+            // Подготавливаем список CurrentListCells(текущих клеток), добавляя в него клетки вокруг живых.
             foreach (Cell cell in NewListCells)
             {
                 AddNearestCells(cell);
@@ -367,10 +444,10 @@ namespace life
         }
 
         /// <summary>
-        /// Создание нового игрового поля из блока ячеек.
+        /// Создание нового игрового поля из блока клеток.
         /// </summary>
-        /// <param name="block">Блок ячеек.</param>
-        internal void SetField(Block block)
+        /// <param name="block">Блок клеток.</param>
+        public void SetField(Block block)
         {
             Clear();
 
@@ -382,10 +459,10 @@ namespace life
         }
 
         /// <summary>
-        /// Помещает указанный блок ячеек на игровое поле, в заданные координаты.
+        /// Помещает указанный блок клеток на игровое поле, в заданные координаты.
         /// Ячейки, чьи координаты выходят за пределы поля, игнорируются.
         /// </summary>
-        /// <param name="block">Блок ячеек.</param>
+        /// <param name="block">Блок клеток.</param>
         /// <param name="begin">Позиция на поле для размещения.</param>
         public void PlaceBlock(Block block, CellLocation begin)
         {
@@ -397,17 +474,17 @@ namespace life
         }
 
         /// <summary>
-        /// Возвращает список ячеек, находящихся в заданной прямоугольной области.
+        /// Возвращает список клеток, находящихся в заданной прямоугольной области.
         /// </summary>
         /// <param name="fieldRect">Ограничивающий прямоугольник.</param>
-        /// <returns>Список ячеек.</returns>
-        internal List<Cell> GetCells(Rectangle fieldRect)
+        /// <returns>Список клеток.</returns>
+        public List<Cell> GetCells(Rectangle fieldRect)
         {
             List<Cell> listCells = new List<Cell>();
 
             foreach (Cell cell in field)
             {
-                if ((cell.IsLive() || cell.IsStatic()) &&
+                if ((cell.IsLive || cell.IsStatic) &&
                     fieldRect.Contains(cell.Location.X, cell.Location.Y))
                 {
                     listCells.Add(cell);
@@ -418,10 +495,10 @@ namespace life
         }
 
         /// <summary>
-        /// Возвращает список всех ячеек игрового поля.
+        /// Возвращает список всех клеток игрового поля.
         /// </summary>
-        /// <returns>Список ячеек.</returns>
-        internal List<Cell> GetCells() => GetCells(Rectangle);
+        /// <returns>Список клеток.</returns>
+        public List<Cell> GetCells() => GetCells(Rectangle);
 
         private void IfNeededToMakeResizing(int dx, int dy)
         {
@@ -439,52 +516,75 @@ namespace life
         /// <summary>
         /// Подготавливает список текущих клеток для начала игры.
         /// </summary>
-        internal void PrepareField()
+        public void PrepareField()
         {
             NewListCells.Clear();
+            ListCellsForDraw.Clear();
 
-            foreach (Cell currentCell in field)
+            // Создаём список живых клеток игрового поля.
+            foreach (Cell cell in field)
             {
-                if (currentCell.IsLive())
+                if (cell.IsLive)
                 {
-                    NewListCells.Add(currentCell);
+                    NewListCells.Add(cell);
                 }
             }
 
-            CurrentListCells.Clear();
-            CurrentListCells.AddRange(NewListCells);
+            ListActiveCells.Clear();
+            ListActiveCells.AddRange(NewListCells);
 
+            // Подготавливаем список активных клеток игрового поля.
             foreach (Cell cell in NewListCells)
             {
-                AddNearestCells(cell);
+                if (cell.IsLive)
+                {
+                    ListActiveCells.Add(cell);
+
+                    AddNearestCells(cell);
+                }
             }
         }
 
+        /// <summary>
+        /// Добавляет клетку на поле(или заменяет существующую)
+        /// и подготавливает поле к следующему ходу.
+        /// </summary>
+        /// <param name="cell">Добавляемая клетка.</param>
         public void AddAndPrepareCell(Cell cell)
         {
-            Cell c = field[cell.Location.X, cell.Location.Y];
+            Cell fieldsCell = field[cell.Location.X, cell.Location.Y];
 
-            if (c != null && c.IsNoCell())
+            if (fieldsCell == null)
             {
-                field.Remove(c);
+                AddCell(cell);
+
+                ListActiveCells.Add(cell);
+
+                NewListCells.Add(cell);
+            }
+            else
+            {
+                if (fieldsCell.IsNoCell)
+                {
+                    NewListCells.Add(cell);
+                }
+
+                fieldsCell.Set(cell);
             }
 
-            field.Add(cell);
-
-            NewListCells.Add(cell);
-
-            CurrentListCells.Add(cell);
-
-            AddNearestCells(cell);
+            if (cell.IsStatic == false)
+            {
+                AddNearestCells(field[cell.Location.X, cell.Location.Y]);
+            }
         }
 
         public void RemoveAndPrepareCell(Cell cell)
         {
-            field.Remove(cell);
-
             NewListCells.Remove(cell);
 
-            CurrentListCells.Remove(cell);
+            ListActiveCells.Remove(cell);
+
+            field.Remove(cell);
         }
 
         public void GospersGliderGun(short x0, short y0)

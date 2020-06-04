@@ -192,7 +192,7 @@ namespace life
                 current = rootNode;
             }
 
-            while (node != current)  // если эта ячейка уже есть - выходим
+            while (node != current)  // если эта клетка уже есть - выходим
             {
                 if (node < current)
                 {
@@ -291,7 +291,7 @@ namespace life
 
             while (current != (object)null)
             {
-                if (current == cell)    // ячейка найдена
+                if (current == cell)    // клетка найдена
                 {
                     return current;
                 }
@@ -322,7 +322,7 @@ namespace life
 
                 if (node != (Object)null)
                 {
-                    return; // такая ячейка уже есть
+                    return; // такая клетка уже есть
                 }
 
                 Add(new BinaryTreeCellsNode(value));

@@ -33,8 +33,6 @@ namespace life
             panelField.LostFocus += PanelField_LostFocus;
 
             panelField.MouseEnter += PanelField_MouseEnter;
-
-            isSelectionMode = false;
         }
     }
 

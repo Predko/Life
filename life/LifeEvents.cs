@@ -62,6 +62,7 @@ namespace life
 
                 timer.Start();
 
+                btnNewGame.Enabled = false;
                 btnStartStop.Text = text_stop;
                 btnMakeAStep.Enabled = false;
                 btnPreviousStep.Enabled = false;
@@ -72,6 +73,7 @@ namespace life
             {
                 timer.Stop();
 
+                btnNewGame.Enabled = true;
                 btnStartStop.Text = text_start;
                 btnMakeAStep.Enabled = true;
                 if ((steps?.IsLogEmpty() ?? true) == false)
@@ -154,13 +156,16 @@ namespace life
         /// <param name="e"></param>
         private void BtnMakeAStep_MouseDown(object sender, MouseEventArgs e)
         {
-            // Переключаем обработчик.
-            btnMakeAStep.MouseDown -= BtnMakeAStep_MouseDown;
-            btnMakeAStep.MouseDown += BtnMouseDownBlankHandler;
+            if (e.Button == MouseButtons.Left)
+            {
+                // Переключаем обработчик.
+                btnMakeAStep.MouseDown -= BtnMakeAStep_MouseDown;
+                btnMakeAStep.MouseDown += BtnMouseDownBlankHandler;
 
-            isMouseKeyUp = false;
+                isMouseKeyUp = false;
 
-            TurnOnMoves(SetTimerNext, HandlerEnableMakeAStep);
+                TurnOnMoves(SetTimerNext, HandlerEnableMakeAStep);
+            }
         }
 
         /// <summary>
@@ -181,14 +186,17 @@ namespace life
         /// <param name="e"></param>
         private void BtnMakeAStep_MouseUp(object sender, MouseEventArgs e)
         {
-            isMouseKeyUp = true;
-
-            if (timer.Enabled)
+            if (e.Button == MouseButtons.Left)
             {
-                // Восстанавливаем обработчик.
-                HandlerEnableMakeAStep();
+                isMouseKeyUp = true;
 
-                timer.Stop();
+                if (timer.Enabled)
+                {
+                    // Восстанавливаем обработчик.
+                    HandlerEnableMakeAStep();
+
+                    timer.Stop();
+                }
             }
         }
 
@@ -252,13 +260,16 @@ namespace life
         /// <param name="e"></param>
         private void BtnPreviousStep_MouseDown(object sender, MouseEventArgs e)
         {
-            // Переключаем обработчик.
-            btnPreviousStep.MouseDown -= BtnPreviousStep_MouseDown;
-            btnPreviousStep.MouseDown += BtnMouseDownBlankHandler;
+            if (e.Button == MouseButtons.Left)
+            {
+                // Переключаем обработчик.
+                btnPreviousStep.MouseDown -= BtnPreviousStep_MouseDown;
+                btnPreviousStep.MouseDown += BtnMouseDownBlankHandler;
 
-            isMouseKeyUp = false;
+                isMouseKeyUp = false;
 
-            TurnOnMoves(SetTimerPrevious, HandlerEnablePreviousStep);
+                TurnOnMoves(SetTimerPrevious, HandlerEnablePreviousStep);
+            }
         }
 
         /// <summary>
@@ -268,16 +279,19 @@ namespace life
         /// <param name="e"></param>
         private void BtnPreviousStep_MouseUp(object sender, MouseEventArgs e)
         {
-            isMouseKeyUp = true;
-
-            if (timer.Enabled)
+            if (e.Button == MouseButtons.Left)
             {
-                // Восстанавливаем обработчик.
-                HandlerEnablePreviousStep();
+                isMouseKeyUp = true;
 
-                timer.Stop();
+                if (timer.Enabled)
+                {
+                    // Восстанавливаем обработчик.
+                    HandlerEnablePreviousStep();
 
-                SetTimerNext();
+                    timer.Stop();
+
+                    SetTimerNext();
+                }
             }
         }
 

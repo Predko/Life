@@ -43,7 +43,7 @@ namespace life
         public Point Location => new Point(minX, minY);
 
         /// <summary>
-        /// Список ячеек игрового поля.
+        /// Список клеток игрового поля.
         /// </summary>
         private readonly List<Cell> cells;
 
@@ -51,7 +51,7 @@ namespace life
         /// <summary>
         /// Корректируем координаты прямоугольника блока.
         /// </summary>
-        /// <param name="cell">Добавляемая ячейка.</param>
+        /// <param name="cell">Добавляемая клетка.</param>
         private void AdjustRectangle(Cell cell)
         {
             if (cell.Location.X < minX)
@@ -92,10 +92,10 @@ namespace life
         }
 
         /// <summary>
-        /// Читает данные одной ячейки и создаёт её.
+        /// Читает данные одной клетки и создаёт её.
         /// </summary>
         /// <param name="sr">Поток для чтения.</param>
-        /// <returns>возвращает созданную ячейку.</returns>
+        /// <returns>возвращает созданную клетку.</returns>
         private Cell ReadCell(StreamReader sr)
         {
             int x = ReadInt(sr);
@@ -105,7 +105,7 @@ namespace life
             {
                 Status = (sr.Read() == 's') ? StatusCell.Static : StatusCell.Yes,
                 NewStatus = StatusCell.Yes,
-                active = true   //,isStaticCell = (sr.Read() == 's') ? true : false
+                active = true
             };
 
             sr.Read();  // разделитель ';'
@@ -146,7 +146,7 @@ namespace life
         }
 
         /// <summary>
-        /// Добавляем ячейку в блок
+        /// Добавляем клетку в блок
         /// </summary>
         /// <param name="cell"></param>
         public void Add(Cell cell)
@@ -167,7 +167,7 @@ namespace life
         }
 
         /// <summary>
-        /// Добавить список ячеек.
+        /// Добавить список клеток.
         /// </summary>
         /// <param name="rangeCells"></param>
         public void AddRange(IEnumerable<Cell> rangeCells)
@@ -246,7 +246,7 @@ namespace life
 
                         foreach (var cell in cells)
                         {
-                            char isStaticCell = (cell.IsStatic()) ? 's' : 'n';
+                            char isStaticCell = (cell.IsStatic) ? 's' : 'n';
                             writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
                         }
                     }
@@ -263,7 +263,7 @@ namespace life
         /// </summary>
         /// <param name="field">Игровое поле для отрисовки блока.</param>
         /// <param name="g">Экземпляр Graphics для отрисовки.</param>
-        /// <param name="bitmaps">Хранилище изображений ячеек для отрисовки.</param>
+        /// <param name="bitmaps">Хранилище изображений клеток для отрисовки.</param>
         /// <param name="x">Смещение блока по X от начала поля.</param>
         /// <param name="y">Смещение блока по Y от начала поля.</param>
         public void Draw(Field field, Graphics g, BitmapCellsStorage bitmaps, int x, int y)
@@ -275,7 +275,7 @@ namespace life
 
                 if (newX < 0 || newX >= field.width || newY < 0 || newY >= field.height)
                 {
-                    return; // Ячейка блока находится вне поля, отрисовке не подлежит
+                    return; // Клетка блока находится вне поля, отрисовке не подлежит
                 }
 
                 cell.Location = new CellLocation(newX, newY);

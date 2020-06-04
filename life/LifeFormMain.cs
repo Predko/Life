@@ -43,6 +43,21 @@ namespace life
         public Graphics bitmapGraphics;
 
         /// <summary>
+        /// Прозрачность прямоугольника выделения.
+        /// </summary>
+        private const int selectionAlpha = 50;
+
+        /// <summary>
+        /// Цвет прямоугольника выделения.
+        /// </summary>
+        private Color SelectionColor => Color.Black;
+
+        /// <summary>
+        /// Кисть для отрисовки прямоугольника выделения игрового поля.
+        /// </summary>
+        private SolidBrush OpacityBrush { get; set; }
+
+        /// <summary>
         /// размер клетки в пикселах.
         /// </summary>
         private int cellSize = 25;
@@ -95,6 +110,8 @@ namespace life
             btnPreviousStep.Enabled = false;
 
             SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
+
+            OpacityBrush = new SolidBrush(Color.FromArgb(selectionAlpha, SelectionColor));
 
             InitField();
 
@@ -235,7 +252,7 @@ namespace life
         }
 
         /// <summary>
-        /// Загрузка игрового поля с изменением размера ячейки
+        /// Загрузка игрового поля с изменением размера клетки
         /// </summary>
         private void LoadField()
         {
@@ -259,7 +276,7 @@ namespace life
         /// <param name="dx">Ширина.</param>
         /// <param name="dy">Высота.</param>
         /// <param name="density">Плотность.</param>
-        /// <param name="isBorderCell">Наличие границы из статичных ячеек.</param>
+        /// <param name="isBorderCell">Наличие границы из статичных клеток.</param>
         public void NewField(int dx, int dy, float density, bool isBorderCell)
         {
             field.SettingCells(dx, dy, density, isBorderCell);
@@ -274,8 +291,8 @@ namespace life
         /// <summary>
         /// Инициализация игрового поля с заданными размерами
         /// </summary>
-        /// <param name="dx">ширина поля, в ячейках</param>
-        /// <param name="dy">высота поля, в ячейках</param>
+        /// <param name="dx">ширина поля, в клетках</param>
+        /// <param name="dy">высота поля, в клетках</param>
         private void ResizeField(int dx, int dy)
         {
             fieldWidth = dx;

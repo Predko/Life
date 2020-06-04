@@ -19,11 +19,25 @@ namespace life
 
     public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
     {
-        public StatusCell Status { get; set; }      // есть клетка или нет или она статичная
-        public StatusCell NewStatus { get; set; }   // Новый статус клетки
-        public bool active;                         // активная ячейка(true)- добавлена в список для обработки
+        /// <summary>
+        /// Состояние клетки.
+        /// </summary>
+        public StatusCell Status { get; set; }
 
-        public CellLocation Location { get; set; }     // координаты ячейки на поле Field
+        /// <summary>
+        /// Новый статус клетки.
+        /// </summary>
+        public StatusCell NewStatus { get; set; }
+
+        /// <summary>
+        /// Активная клетка(true)- добавлена в список для обработки.
+        /// </summary>
+        public bool active;
+
+        /// <summary>
+        /// Координаты клетки на поле Field.
+        /// </summary>
+        public CellLocation Location { get; set; }
 
         public Cell(CellLocation fl)
         {
@@ -39,92 +53,41 @@ namespace life
 
         public Cell(Cell cell)
         {
-            Copy(cell);
+            Set(cell);
         }
 
-        public void Copy(Cell cl)
+        public void Set(Cell cell)
         {
-            Status = cl.Status;
-            NewStatus = cl.NewStatus;
-            active = cl.active;
-            Location = cl.Location;
-        }
-
-        public bool IsLive() => (Status == StatusCell.Yes);     // клетка есть
-        public bool IsStatic() => (Status == StatusCell.Static);// статичная клетка
-        public bool IsNoCell() => (Status == StatusCell.No);    // клетки нет
-
-        /// <summary>
-        /// Анализ следующего шага.
-        /// </summary>
-        public void AnalysisNextStep(Field field)
-        {
-            int numberNearest = field.NumberLiveCells(Location.X, Location.Y);
-
-            // Новое состояние клетки приравниваем к старому
-            NewStatus = Status;
-
-            if (numberNearest == 3)
-            {
-                if (!IsLive())          // клетки нет
-                {
-                    // клетка появится
-                    NewStatus = StatusCell.Yes;
-                }
-
-                field.AddCellForNextStep(this);
-            }
-            else
-            if (numberNearest == 2)
-            {
-                if (IsLive())
-                {
-                    // клетка остаётся на следующий ход
-                    field.AddCellForNextStep(this);
-                }
-                else
-                {
-                    // делаем неактивной
-                    active = false;
-                }
-            }
-            else
-            {
-                if (IsLive())   // клетка есть
-                {
-                    // клетка исчезает
-                    NewStatus = StatusCell.No;
-                }
-
-                // make inactive
-                active = false;
-            }
+            Status = cell.Status;
+            NewStatus = cell.NewStatus;
+            active = cell.active;
+            Location = cell.Location;
         }
 
         /// <summary>
-        /// Меняем состояние клетки м зависимости от произведённого ранее анализа
+        /// Нормальная клетка.
         /// </summary>
-        public void ChangeStatus(Field field)
-        {
-            if (IsChangeStatus())
-            {
-                if (NewStatus == StatusCell.Yes)    // клетка должна появиться
-                {
-                    field.AddCell(this);
-                }
+        public bool IsLive => (Status == StatusCell.Yes);
 
-                Status = NewStatus;
+        /// <summary>
+        /// Статичная клетка.
+        /// </summary>
+        public bool IsStatic => (Status == StatusCell.Static);
 
-                field.AddToDraw(this);
-            }
+        /// <summary>
+        /// Клетки нет. 
+        /// </summary>
+        public bool IsNoCell => (Status == StatusCell.No);
+        
+        /// <summary>
+        /// Активная клетка. Эта клетка учавствует в рассчёте следующего хода.
+        /// </summary>
+        public bool IsActive => active;
 
-            if (!active) // неактивные(погибшие) клетки удаляем с поля
-            {
-                field.RemoveCell(this);
-            }
-        }
-
-        public bool IsChangeStatus() => (Status != NewStatus);
+        /// <summary>
+        /// Изменится ли статус клетки на следующем ходу.
+        /// </summary>
+        public bool IsChangeStatus => (Status != NewStatus);
 
         public void Draw(Graphics g, BitmapCellsStorage b)
         {
@@ -137,6 +100,20 @@ namespace life
             g.DrawImage(bm, x, y);
         }
 
+        /// <summary>
+        /// Смещает данную клетку на смещение указанное координатами.
+        /// </summary>
+        /// <param name="begin">Смещение.</param>
+        public void Offset(CellLocation begin)
+        {
+            Location = new CellLocation(Location.X + begin.X, Location.Y + begin.Y);
+        }
+
+        /// <summary>
+        /// Определяет, имеет ли данная клетка те же координаты.
+        /// </summary>
+        /// <param name="other">Проверяемая клетка.</param>
+        /// <returns></returns>
         public int CompareTo(Cell other) => Location.CompareTo(other.Location);
 
         public override int GetHashCode() => Location.GetHashCode();
@@ -150,11 +127,6 @@ namespace life
         }
 
         public override bool Equals(object obj) => obj is Cell other && Equals(other);
-
-        internal void Offset(CellLocation begin)
-        {
-            Location = new CellLocation(Location.X + begin.X, Location.Y + begin.Y);
-        }
     }
 }
 
