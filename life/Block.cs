@@ -123,6 +123,10 @@ namespace life
 
         public Block(Field field)
         {
+            cells = new List<Cell>();
+
+            minX = minY = maxX = maxY = 0;
+
             cells.AddRange(field.GetCells());
         }
 
@@ -136,13 +140,21 @@ namespace life
             int dx = start.X - minX;
             int dy = start.Y - minY;
 
-            foreach (Cell cell in cells)
+            for (int i = 0; i < cells.Count; i++)
             {
-                cell.Location = new CellLocation(cell.Location.X + dx, cell.Location.Y + dy);
+                cells[i].Location = new CellLocation(cells[i].Location.X + dx, cells[i].Location.Y + dy);
             }
 
-            minX = start.X;
-            minY = start.Y;
+            //foreach (Cell cell in cells)
+            //{
+            //    cell.Location = new CellLocation(cell.Location.X + dx, cell.Location.Y + dy);
+            //}
+
+            // Корректируем границы блока после изменения стартовой точки.
+            {
+                minX += dx; maxX += dx;
+                minY += dy; maxY += dy;
+            }
         }
 
         /// <summary>
@@ -174,7 +186,7 @@ namespace life
         {
             foreach (Cell cell in rangeCells)
             {
-                Add(cell);
+                Add(new Cell(cell));
             }
         }
 
@@ -259,28 +271,42 @@ namespace life
         }
 
         /// <summary>
-        /// Отрисовывает блок на указанном игровом поле.
+        /// Отрисовывает блок на указанном игровом поле, в указанной точке.
         /// </summary>
         /// <param name="field">Игровое поле для отрисовки блока.</param>
         /// <param name="g">Экземпляр Graphics для отрисовки.</param>
         /// <param name="bitmaps">Хранилище изображений клеток для отрисовки.</param>
-        /// <param name="x">Смещение блока по X от начала поля.</param>
-        /// <param name="y">Смещение блока по Y от начала поля.</param>
+        /// <param name="p">Координаты.</param>
+        public void Draw(Field field, Graphics g, BitmapCellsStorage bitmaps, Point p) => Draw(field, g, bitmaps, p.X, p.Y);
+
+        /// <summary>
+        /// Отрисовывает блок на указанном игровом поле в указанные координаты x и y.
+        /// </summary>
+        /// <param name="field">Игровое поле для отрисовки блока.</param>
+        /// <param name="g">Экземпляр Graphics для отрисовки.</param>
+        /// <param name="bitmaps">Хранилище изображений клеток для отрисовки.</param>
+        /// <param name="x">Кордината x.</param>
+        /// <param name="y">Координата y.</param>
         public void Draw(Field field, Graphics g, BitmapCellsStorage bitmaps, int x, int y)
         {
+            // Смещение для определения координат клеток.
+            int dx = x - minX;
+            int dy = y - minY;
+
             foreach (Cell cell in cells)
             {
-                int newX = cell.Location.X + x;
-                int newY = cell.Location.Y + y;
+                Point p = new Point()
+                {
+                    X = cell.Location.X + dx,
+                    Y = cell.Location.Y + dy
+                };
 
-                if (newX < 0 || newX >= field.width || newY < 0 || newY >= field.height)
+                if (p.X < 0 || p.X >= field.width || p.Y < 0 || p.Y >= field.height)
                 {
                     return; // Клетка блока находится вне поля, отрисовке не подлежит
                 }
 
-                cell.Location = new CellLocation(newX, newY);
-
-                cell.Draw(g, bitmaps);
+                cell.Draw(g, bitmaps, p);
             }
         }
 

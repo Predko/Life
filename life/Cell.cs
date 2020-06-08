@@ -78,7 +78,7 @@ namespace life
         /// Клетки нет. 
         /// </summary>
         public bool IsNoCell => (Status == StatusCell.No);
-        
+
         /// <summary>
         /// Активная клетка. Эта клетка учавствует в рассчёте следующего хода.
         /// </summary>
@@ -89,13 +89,19 @@ namespace life
         /// </summary>
         public bool IsChangeStatus => (Status != NewStatus);
 
-        public void Draw(Graphics g, BitmapCellsStorage b)
+        public void Draw(Graphics g, BitmapCellsStorage b) => Draw(g, b, Location.ToPoint());
+
+        /// <summary>
+        /// Отрисовка клетки в заданной точке.
+        /// <param name="p">Положение клетки.</param>
+        /// </summary>
+        public void Draw(Graphics g, BitmapCellsStorage b, Point p)
         {
             Bitmap bm = b.GetBitmap(Status);
 
             // Координаты точки для отрисовки
-            int x = Location.X * bm.Width;
-            int y = Location.Y * bm.Height;
+            int x = p.X * bm.Width;
+            int y = p.Y * bm.Height;
 
             g.DrawImage(bm, x, y);
         }

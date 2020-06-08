@@ -144,10 +144,7 @@ namespace life
         /// </summary>
         /// <param name="bitmapGraphics"></param>
         /// <param name="bitmapCells"></param>
-        public void DrawAll(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells)
-        {
-            Draw(bitmapGraphics, bitmapCells, Rectangle);
-        }
+        public void DrawAll(Graphics bitmapGraphics, BitmapCellsStorage bitmapCells) => Draw(bitmapGraphics, bitmapCells, Rectangle);
 
         /// <summary>
         /// Отрисовывает активные клетки игрового поля.
@@ -225,7 +222,10 @@ namespace life
 
                 if (currentCell == null)
                 {
-                    currentCell = new Cell(new CellLocation(x + i.X, y + i.Y)) { active = true };
+                    currentCell = new Cell(new CellLocation(x + i.X, y + i.Y))
+                    { 
+                        active = true
+                    };
 
                     field[x + i.X, y + i.Y] = currentCell;
 
@@ -282,7 +282,7 @@ namespace life
         /// </summary>
         /// <param name="cell">клетка.</param>
         /// <returns>Число живых клеток, примыкающих к данной.</returns>
-        private int NumberLiveCells(Cell cell) => NumberLiveCells(cell.Location.X, cell.Location.Y);
+        public int NumberLiveCells(Cell cell) => NumberLiveCells(cell.Location.X, cell.Location.Y);
 
         /// <summary>
         /// Ход назад.
@@ -345,7 +345,7 @@ namespace life
 
             if (numberNearest == 3)
             {
-                if (!cell.IsLive)          // клетки нет
+                if (cell.IsLive == false)          // клетки нет
                 {
                     // клетка появится
                     cell.NewStatus = StatusCell.Yes;
@@ -399,7 +399,7 @@ namespace life
             }
 
             // неактивные(погибшие) клетки удаляем с поля.
-            if (!cell.IsActive)
+            if (cell.IsActive == false)
             {
                 RemoveCell(cell);
             }
@@ -466,9 +466,10 @@ namespace life
         /// <param name="begin">Позиция на поле для размещения.</param>
         public void PlaceBlock(Block block, CellLocation begin)
         {
+            block.SetStartPoint(begin.ToPoint());
+
             foreach (Cell cell in block)
             {
-                cell.Offset(begin);
                 field.Add(cell);
             }
         }
@@ -513,6 +514,24 @@ namespace life
             }
         }
 
+        public void RemoveNoLivesCells()
+        {
+            List<Cell> noLivesCells = new List<Cell>();
+
+            foreach (Cell cell in field)
+            {
+                if (cell.IsNoCell)
+                {
+                    noLivesCells.Add(cell);
+                }
+            }
+
+            foreach (Cell cell in noLivesCells)
+            {
+                field.Remove(cell);
+            }
+        }
+
         /// <summary>
         /// Подготавливает список текущих клеток для начала игры.
         /// </summary>
@@ -538,8 +557,6 @@ namespace life
             {
                 if (cell.IsLive)
                 {
-                    ListActiveCells.Add(cell);
-
                     AddNearestCells(cell);
                 }
             }
@@ -695,14 +712,14 @@ namespace life
         {
             for (int x = 0; x < width; x++)
             {
-                field[x, 0] = new Cell(x, 0) { Status = StatusCell.Static };
-                field[x, height - 1] = new Cell(x, height - 1) { Status = StatusCell.Static };
+                field[x, 0] = new Cell(x, 0) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
+                field[x, height - 1] = new Cell(x, height - 1) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
             }
 
             for (int y = 1; y < height - 1; y++)
             {
-                field[0, y] = new Cell(0, y) { Status = StatusCell.Static };
-                field[width - 1, y] = new Cell(width - 1, y) { Status = StatusCell.Static };
+                field[0, y] = new Cell(0, y) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
+                field[width - 1, y] = new Cell(width - 1, y) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
             }
         }
 

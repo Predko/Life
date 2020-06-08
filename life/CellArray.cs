@@ -28,22 +28,41 @@ namespace life
                 {
                     return null;
                 }
+
                 return cells[x, y];
             }
 
             set
             {
-
                 if (x >= width || y >= height || x < 0 || y < 0)
                 {
                     return;
                 }
 
-                if (cells[x, y] == null && value != null)
+                if (cells[x, y] == null)
                 {
-                    cells[x, y] = value;
+                    if (value != null)
+                    {
+                        // Записываем новую клетку в пустую ячейку.
+                        cells[x, y] = value;
 
-                    Count++;
+                        Count++;
+                    }
+                }
+                else
+                {
+                    if (value != null)
+                    {
+                        // Меняем уже имеющуюся клетку.
+                        cells[x, y].Set(value);
+                    }
+                    else
+                    {
+                        // Обнуляем(удаляем) имеющуюся клетку из массива.
+                        cells[x, y] = value;
+
+                        Count--;
+                    }
                 }
             }
         }
@@ -62,10 +81,14 @@ namespace life
 
             if (cells[cell.Location.X, cell.Location.Y] == null)
             {
+                cells[cell.Location.X, cell.Location.Y] = cell;
+
                 Count++;
             }
-
-            cells[cell.Location.X, cell.Location.Y] = cell;
+            else
+            {
+                cells[cell.Location.X, cell.Location.Y].Set(cell);
+            }
         }
 
         public void Remove(Cell cell)
@@ -99,30 +122,13 @@ namespace life
 
         public IEnumerator<Cell> GetEnumerator()
         {
-            int count = Count;
-
             foreach (Cell cell in cells)
             {
                 if (cell == null)
                     continue;
 
-                if (count-- == 0)
-                {
-                    yield break;
-                }
-
                 yield return cell;
             }
-
-            //for (int x = 0; x < cells.GetLength(0); x++)
-            //{
-            //    for (int y = 0; y < cells.GetLength(1); y++)
-            //    {
-
-
-            //        yield return cells[x,y];
-            //    }
-            //}
         }
 
         IEnumerator IEnumerable.GetEnumerator()

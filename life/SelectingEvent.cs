@@ -13,6 +13,12 @@ namespace life
         private Point newMouseDownCoordinate;
 
         /// <summary>
+        /// Минимальное смещение мыши с нажатой левой кнопкой,
+        /// чтобы перейти в режим выбора.
+        /// </summary>
+        private const int minOffsetMouseForSelect = 3;
+
+        /// <summary>
         /// Тип клетки, который будет размещён на поле
         /// </summary>
         private StatusCell currentCellStatus = StatusCell.Yes;
@@ -30,7 +36,7 @@ namespace life
             Point p = newMouseDownCoordinate;
 
             p.Offset(-currentPosition.X, -currentPosition.Y);
-            
+
             if (Math.Abs(p.X) > minOffsetMouseForSelect || Math.Abs(p.Y) > minOffsetMouseForSelect)
             {
                 StartSelection(currentPosition);
@@ -45,45 +51,73 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-                Rectangle selection = GetSelection(e.Location, e.Location);
+                SetCellToField(e.Location);
+            }
+        }
 
-                Rectangle fieldRect = new Rectangle()
+        /// <summary>
+        /// Устанавливает или убирает клетку в точку currentMousePosition.
+        /// Тип клетки записан в переменной currentCellStatus.
+        /// </summary>
+        /// <param name="currentMousePosition">Точка для установки клетки.</param>
+        private void SetCellToField(Point currentMousePosition)
+        {
+            // Обнуляем лог и счётчик шагов.
+            ClearLogOfSteps();
+
+            Rectangle selection = GetSelection(currentMousePosition, currentMousePosition);
+
+            Rectangle fieldRectangle = new Rectangle()
+            {
+                Location = new Point(selection.X / cellSize, selection.Y / cellSize),
+                Width = selection.Width / cellSize,
+                Height = selection.Height / cellSize
+            };
+
+            CellLocation currentCellLocation = new CellLocation(fieldRectangle.X, fieldRectangle.Y);
+
+            Cell cell = field.GetCell(currentCellLocation);
+
+            if (cell == null || cell.IsNoCell)
+            {
+                cell = new Cell(currentCellLocation)
                 {
-                    Location = new Point(selection.X / cellSize, selection.Y / cellSize),
-                    Width = selection.Width / cellSize,
-                    Height = selection.Height / cellSize
+                    Status = currentCellStatus,
+                    NewStatus = StatusCell.Yes,
+                    active = true
                 };
 
-                CellLocation cellLocation = new CellLocation(fieldRect.X, fieldRect.Y);
+                field.AddAndPrepareCell(cell);
+            }
+            else
+            if (cell.Status != currentCellStatus)
+            {
+                cell.Status = currentCellStatus;
 
-                Cell cell = field.GetCell(cellLocation);
+                field.AddAndPrepareCell(cell);
+            }
+            else
+            {
+                field.RemoveAndPrepareCell(cell);
+            }
 
-                if (cell == null || cell.IsNoCell)
-                {
-                    cell = new Cell(cellLocation)
-                    {
-                        Status = currentCellStatus,
-                        NewStatus = StatusCell.Yes,
-                        active = true
-                    };
+            field.Draw(bitmapGraphics, BitmapCells, fieldRectangle);
 
-                    field.AddAndPrepareCell(cell);
-                }
-                else
-                if (cell.Status != currentCellStatus)
-                {
-                    cell.Status = currentCellStatus;
+            panelField.Invalidate(selection);
+        }
 
-                    field.AddAndPrepareCell(cell);
-                }
-                else
-                {
-                    field.RemoveAndPrepareCell(cell);
-                }
+        /// <summary>
+        /// Очищает историю и счётчик шагов, а также отключает кнопку "Шаг назад"
+        /// </summary>
+        private void ClearLogOfSteps()
+        {
+            if (steps != null)
+            {
+                steps.Clear();
 
-                field.Draw(bitmapGraphics, BitmapCells, fieldRect);
+                MoveCounter = 0;
 
-                panelField.Invalidate(selection);
+                btnPreviousStep.Enabled = false;
             }
         }
 
@@ -91,17 +125,7 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-
-                if (IsInsideSelection(e.Location))
-                {
-                    // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
-
-                    StartMoveSelected();
-                }
-                else
-                {
-                    newMouseDownCoordinate = e.Location;
-                }
+                newMouseDownCoordinate = e.Location;
             }
         }
 
@@ -109,17 +133,11 @@ namespace life
         {
         }
 
-        /// <summary>
-        /// Минимальное смещение мыши с нажатой левой кнопкой,
-        /// чтобы перейти в режим выбора.
-        /// </summary>
-        private const int minOffsetMouseForSelect = 3;
-
         private void PanelField_MouseMove(object sender, MouseEventArgs e)
         {
             if (MouseButtons == MouseButtons.Left)
             {
-                // Проверяем, надо ли включить выбора блока.
+                // Проверяем, надо ли включить режим выбора блока.
                 if (IsSetSelectionMode(e.Location))
                 {
                     return;
@@ -130,6 +148,7 @@ namespace life
         private void PanelField_MouseEnter(object sender, EventArgs e)
         {
             // Проверяем, можно ли включить режим редактирования игрового поля.
+            // Если таймер включён, значит запущены игровые ходы по таймеру.
             if (timer.Enabled)
             {
                 return;
@@ -157,7 +176,7 @@ namespace life
         /// Указывает, вкючён ли режим редактирования.
         /// </summary>
         private bool mouseSelectionModeOn = false;
-        
+
         private const bool turnOn = true;
         private const bool turnOff = false;
 
@@ -171,14 +190,14 @@ namespace life
             {
                 PanelField_AddMouseEvent();
 
-                mouseSelectionModeOn = true;
+                mouseSelectionModeOn = turnOn;
             }
             else
             if (mode == turnOff && mouseSelectionModeOn)
             {
                 PanelField_RemoveMouseEvent();
 
-                mouseSelectionModeOn = false;
+                mouseSelectionModeOn = turnOff;
             }
         }
 
