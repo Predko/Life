@@ -98,7 +98,7 @@ namespace life
 
         object IEnumerator.Current => Current;
 
-        public void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {

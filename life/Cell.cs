@@ -37,9 +37,9 @@ namespace life
         /// <summary>
         /// Координаты клетки на поле Field.
         /// </summary>
-        public CellLocation Location { get; set; }
+        public Point Location { get; set; }
 
-        public Cell(CellLocation fl)
+        public Cell(Point fl)
         {
             Status = StatusCell.No;
             NewStatus = StatusCell.No;
@@ -47,7 +47,7 @@ namespace life
             Location = fl;
         }
 
-        public Cell(int x, int y) : this(new CellLocation(x, y))
+        public Cell(int x, int y) : this(new Point(x, y))
         {
         }
 
@@ -89,7 +89,7 @@ namespace life
         /// </summary>
         public bool IsChangeStatus => (Status != NewStatus);
 
-        public void Draw(Graphics g, BitmapCellsStorage b) => Draw(g, b, Location.ToPoint());
+        public void Draw(Graphics g, BitmapCellsStorage b) => Draw(g, b, Location);
 
         /// <summary>
         /// Отрисовка клетки в заданной точке.
@@ -100,19 +100,22 @@ namespace life
             Bitmap bm = b.GetBitmap(Status);
 
             // Координаты точки для отрисовки
-            int x = p.X * bm.Width;
-            int y = p.Y * bm.Height;
+            
+            p.X *= bm.Width;
+            p.Y *= bm.Height;
 
-            g.DrawImage(bm, x, y);
+            g.DrawImage(bm, p);
         }
 
         /// <summary>
         /// Смещает данную клетку на смещение указанное координатами.
         /// </summary>
         /// <param name="begin">Смещение.</param>
-        public void Offset(CellLocation begin)
+        public void Offset(Point begin)
         {
-            Location = new CellLocation(Location.X + begin.X, Location.Y + begin.Y);
+            begin.Offset(Location);
+
+            Location = begin;
         }
 
         /// <summary>
@@ -120,9 +123,19 @@ namespace life
         /// </summary>
         /// <param name="other">Проверяемая клетка.</param>
         /// <returns></returns>
-        public int CompareTo(Cell other) => Location.CompareTo(other.Location);
+        public int CompareTo(Cell other)
+        {
+            int res = Location.Y.CompareTo(other.Location.Y);
 
-        public override int GetHashCode() => Location.GetHashCode();
+            if (res == 0)
+            {
+                return Location.X.CompareTo(other.Location.X);
+            }
+
+            return res;
+        }
+
+        public override int GetHashCode() => ((Location.Y & 0x7FFF) << 15) | (Location.X & 0x7FFF);
 
         public bool Equals(Cell other)
         {

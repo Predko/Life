@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -210,7 +211,7 @@ namespace life
                         sc = StatusCell.Yes;
                     }
 
-                    Cell cell = new Cell(new CellLocation(x, y))
+                    Cell cell = new Cell(x, y)
                     {
                         NewStatus = sc
                     };

@@ -74,7 +74,7 @@ namespace life
                 Height = selection.Height / cellSize
             };
 
-            CellLocation currentCellLocation = new CellLocation(fieldRectangle.X, fieldRectangle.Y);
+            Point currentCellLocation = fieldRectangle.Location;
 
             Cell cell = field.GetCell(currentCellLocation);
 
@@ -186,14 +186,14 @@ namespace life
         /// <param name="mode">turnOn = true - включить режим, turnOff = false - выключить.</param>
         public void MouseEditingGameFieldMode(bool mode)
         {
-            if (mode == turnOn && mouseSelectionModeOn == false)
+            if (mode == turnOn && mouseSelectionModeOn == turnOff)
             {
                 PanelField_AddMouseEvent();
 
                 mouseSelectionModeOn = turnOn;
             }
             else
-            if (mode == turnOff && mouseSelectionModeOn)
+            if (mode == turnOff && mouseSelectionModeOn == turnOn)
             {
                 PanelField_RemoveMouseEvent();
 

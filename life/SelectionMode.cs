@@ -135,8 +135,7 @@ namespace life
         /// <returns>true - если точка принадлежит прямоугольнику.</returns>
         private bool IsInsideSelection(Point p)
         {
-            return (p.X >= startSelection.X && p.X <= endSelection.X &&
-                    p.Y >= startSelection.Y && p.Y <= endSelection.Y);
+            return Selection.Contains(p);
         }
 
         /// <summary>
@@ -194,7 +193,8 @@ namespace life
 
             Rectangle seletedRectangle = new Rectangle()
             {
-                Location = new Point(selection.X / cellSize, selection.Y / cellSize),
+                X = selection.X / cellSize,
+                Y = selection.Y / cellSize,
                 Width = selection.Width / cellSize,
                 Height = selection.Height / cellSize
             };
@@ -236,9 +236,9 @@ namespace life
             // Меняем стартовые и конечные значения прямоугольника выделения
             startSelection = endSelection = selection.Location;
 
-            endSelection.Offset(selection.Width - 1, selection.Height -1);
+            endSelection.Offset(selection.Width - 1, selection.Height - 1);
 
-            startMoveLocation = TruncatePoint(startSelection, cellSize);
+            //startMoveLocation = startSelection;
 
             // Прямоугольник выделения в координатах игрового поля.
             Rectangle fieldSselection = new Rectangle()
@@ -249,20 +249,23 @@ namespace life
                 Height = selection.Height / cellSize
             };
 
-            CellLocation pointToPlace = new CellLocation()
-            {
-                X = fieldSselection.X,
-                Y = fieldSselection.Y
-            };
+            // Точка установки блока.
+            Point pointToPlace = fieldSselection.Location;
 
+            // Перерисовываем игровое поле в месте выделения блока.
             field.Draw(bitmapGraphics, BitmapCells, selectedCells.Rectangle);
 
+            // Устанавливаем блок на новом месте.
             field.PlaceBlock(selectedCells, pointToPlace);
 
-            field.RemoveNoLivesCells();
+            // Подготавливаем игровое поле для нормальной работы игры.
+            {
+                field.RemoveNoLivesCells();
 
-            field.PrepareField();
+                field.PrepareField();
+            }
 
+            // Отрисовываем блок в новом месте.
             field.Draw(bitmapGraphics, BitmapCells, fieldSselection);
 
             // Сохраняем новое состояние игрового поля.
@@ -415,7 +418,7 @@ namespace life
         /// </summary>
         private void SetMouseEventForSelectionMode()
         {
-            PanelField_RemoveMouseEvent();
+            MouseEditingGameFieldMode(turnOff);
 
             panelField.MouseClick += PanelField_MouseClick_InSelectionMode;
             panelField.MouseDown += PanelField_MouseDown_InSelectionMode;
@@ -435,7 +438,7 @@ namespace life
             panelField.MouseMove -= PanelField_MouseMove_InSelectionMode;
             panelField.LostFocus -= PanelField_LostFocus_InSelectionMode;
 
-            PanelField_AddMouseEvent();
+            MouseEditingGameFieldMode(turnOn);
         }
 
 
@@ -456,8 +459,9 @@ namespace life
 
             isLeaveSelectionMode = true;
 
-            // Выходим из режима выделения - восстанавливаем обработчики событий мыши.
-            RemoveMouseEventForSelectionMode();
+            isMoveMode = isSelected = false;
+            
+            panelField.Enabled = false;
 
             // Восстанавливаем поле после предыдущего выбора.
             {
@@ -476,6 +480,11 @@ namespace life
 
                 selectedCells = null;
             }
+
+            // Выходим из режима выделения - восстанавливаем обработчики событий мыши.
+            RemoveMouseEventForSelectionMode();
+
+            panelField.Enabled = true;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace life
         /// <summary>
         /// массив координат клеток вокруг данной
         /// </summary>
-        private readonly CellLocation[] nearestCellsLocation = new CellLocation[8];
+        private readonly Point[] nearestCellsLocation = new Point[8];
 
         /// <summary>
         /// хранилище клеток игрового поля
@@ -78,16 +78,20 @@ namespace life
             this.width = width;
 
             isBorder = true;
+            
+            // Стартовая плотность.
             density = 0.3f;
 
-            nearestCellsLocation[0].X = -1; nearestCellsLocation[0].Y = -1;
-            nearestCellsLocation[1].X = -1; nearestCellsLocation[1].Y = 0;
-            nearestCellsLocation[2].X = -1; nearestCellsLocation[2].Y = 1;
-            nearestCellsLocation[3].X = 0; nearestCellsLocation[3].Y = -1;
-            nearestCellsLocation[4].X = 0; nearestCellsLocation[4].Y = 1;
-            nearestCellsLocation[5].X = 1; nearestCellsLocation[5].Y = -1;
-            nearestCellsLocation[6].X = 1; nearestCellsLocation[6].Y = 0;
-            nearestCellsLocation[7].X = 1; nearestCellsLocation[7].Y = 1;
+            {
+                nearestCellsLocation[0].X = -1; nearestCellsLocation[0].Y = -1;
+                nearestCellsLocation[1].X = -1; nearestCellsLocation[1].Y = 0;
+                nearestCellsLocation[2].X = -1; nearestCellsLocation[2].Y = 1;
+                nearestCellsLocation[3].X = 0; nearestCellsLocation[3].Y = -1;
+                nearestCellsLocation[4].X = 0; nearestCellsLocation[4].Y = 1;
+                nearestCellsLocation[5].X = 1; nearestCellsLocation[5].Y = -1;
+                nearestCellsLocation[6].X = 1; nearestCellsLocation[6].Y = 0;
+                nearestCellsLocation[7].X = 1; nearestCellsLocation[7].Y = 1;
+            }
 
             ListActiveCells = new List<Cell>();
             NewListCells = new List<Cell>();
@@ -104,7 +108,7 @@ namespace life
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public Cell GetCell(CellLocation location) => field[location.X, location.Y];
+        public Cell GetCell(Point location) => field[location.X, location.Y];
 
         /// <summary>
         /// Отрисовывает изменившиеся клетки игрового поля.
@@ -216,18 +220,18 @@ namespace life
         /// <param name="y">Координата y клетки.</param>
         private void AddNearestCells(int x, int y)
         {
-            foreach (CellLocation i in nearestCellsLocation)
+            foreach (Point p in nearestCellsLocation)
             {
-                Cell currentCell = field[x + i.X, y + i.Y];
+                Cell currentCell = field[x + p.X, y + p.Y];
 
                 if (currentCell == null)
                 {
-                    currentCell = new Cell(new CellLocation(x + i.X, y + i.Y))
+                    currentCell = new Cell(new Point(x + p.X, y + p.Y))
                     { 
                         active = true
                     };
 
-                    field[x + i.X, y + i.Y] = currentCell;
+                    field[x + p.X, y + p.Y] = currentCell;
 
                     ListActiveCells.Add(currentCell);
                 }
@@ -256,7 +260,7 @@ namespace life
 
             int count = 0;   // счётчик живых клеток вокруг данной
 
-            foreach (CellLocation location in nearestCellsLocation)
+            foreach (Point location in nearestCellsLocation)
             {
                 Cell currentcell = field[x + location.X, y + location.Y];
 
@@ -453,7 +457,7 @@ namespace life
 
             IfNeededToMakeResizing(block.Size.Width, block.Size.Height);
 
-            PlaceBlock(block, CellLocation.Empty);
+            PlaceBlock(block, Point.Empty);
 
             PrepareField();
         }
@@ -464,9 +468,9 @@ namespace life
         /// </summary>
         /// <param name="block">Блок клеток.</param>
         /// <param name="begin">Позиция на поле для размещения.</param>
-        public void PlaceBlock(Block block, CellLocation begin)
+        public void PlaceBlock(Block block, Point begin)
         {
-            block.SetStartPoint(begin.ToPoint());
+            block.SetStartPoint(begin);
 
             foreach (Cell cell in block)
             {

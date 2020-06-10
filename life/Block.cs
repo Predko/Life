@@ -137,23 +137,17 @@ namespace life
         public void SetStartPoint(Point start)
         {
             // Вычисляем смещение координат.
-            int dx = start.X - minX;
-            int dy = start.Y - minY;
+            start.Offset(-minX, -minY);
 
             for (int i = 0; i < cells.Count; i++)
             {
-                cells[i].Location = new CellLocation(cells[i].Location.X + dx, cells[i].Location.Y + dy);
+                cells[i].Offset(start);
             }
-
-            //foreach (Cell cell in cells)
-            //{
-            //    cell.Location = new CellLocation(cell.Location.X + dx, cell.Location.Y + dy);
-            //}
 
             // Корректируем границы блока после изменения стартовой точки.
             {
-                minX += dx; maxX += dx;
-                minY += dy; maxY += dy;
+                minX += start.X; maxX += start.X;
+                minY += start.Y; maxY += start.Y;
             }
         }
 

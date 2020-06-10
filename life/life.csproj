@@ -70,7 +70,6 @@
     </Compile>
     <Compile Include="CellArray.cs" />
     <Compile Include="BinaryTreeCells.cs" />
-    <Compile Include="CellLocation.cs" />
     <Compile Include="CellsComboBox.cs">
       <SubType>Form</SubType>
     </Compile>
