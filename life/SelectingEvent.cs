@@ -51,7 +51,16 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-                SetCellToField(e.Location);
+                // Проверяем, не был ли выбран блок ранее, если да - отключаем выделение
+                // В этом случае, клетку не устанавливаем.
+                if (isSelected)
+                {
+                    isSelected = false;
+                }
+                else
+                {
+                    SetCellToField(e.Location);
+                }
             }
         }
 

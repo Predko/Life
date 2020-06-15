@@ -201,7 +201,7 @@ namespace life
 
             field.SetLog(steps);
 
-            field.SettingCells();
+            field.SetCells();
 
             SetSizeFormAndField();
 
@@ -279,7 +279,7 @@ namespace life
         /// <param name="isBorderCell">Наличие границы из статичных клеток.</param>
         public void NewField(int dx, int dy, float density, bool isBorderCell)
         {
-            field.SettingCells(dx, dy, density, isBorderCell);
+            field.SetCells(dx, dy, density, isBorderCell);
 
             field.PrepareField();
 

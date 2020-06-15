@@ -459,7 +459,7 @@ namespace life
 
             isLeaveSelectionMode = true;
 
-            isMoveMode = isSelected = false;
+            isMoveMode = false;
             
             panelField.Enabled = false;
 

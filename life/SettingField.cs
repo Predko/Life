@@ -128,11 +128,11 @@ namespace life
             cbCells.SelectedIndex = indexCell;
             cbStaticCells.SelectedIndex = indexStaticCell;
 
-            nudWidth.Value = field.width;
-            nudHeight.Value = field.height;
+            nudWidth.Value = field.Width;
+            nudHeight.Value = field.Height;
 
-            cbBorder.Checked = field.isBorder;
-            hsbDensity.Value = (int)(field.density * 100);
+            cbBorder.Checked = field.IsBorder;
+            hsbDensity.Value = (int)(field.Density * 100);
             labelDensity.Text = $"{hsbDensity.Value}";
         }
 

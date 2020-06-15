@@ -40,9 +40,6 @@ namespace life
         {
             if (settingField.ShowDialog() == DialogResult.OK)
             {
-                field.density = settingField.Density;
-                field.isBorder = settingField.IsBorder;
-
                 NewField(settingField.SizeField.Width, settingField.SizeField.Height, settingField.Density, settingField.IsBorder);
 
                 MoveCounter = 0;

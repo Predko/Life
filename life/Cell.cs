@@ -6,18 +6,12 @@ using System.Drawing;
 
 namespace life
 {
-    // отрисовка клетки
-    interface IDraw
-    {
-        void Draw(Graphics g, BitmapCellsStorage b);
-    }
-
     /// <summary>
     /// Клетка есть, нет, статичная 
     /// </summary>
-    public enum StatusCell { Yes = 0, Static = 1, No = 2 };
+    public enum StatusCell { Yes, No, Static };
 
-    public class Cell : IComparable<Cell>, IEquatable<Cell>, IDraw
+    public class Cell : IComparable<Cell>, IEquatable<Cell>
     {
         /// <summary>
         /// Состояние клетки.
@@ -53,10 +47,14 @@ namespace life
 
         public Cell(Cell cell)
         {
-            Set(cell);
+            Copy(cell);
         }
 
-        public void Set(Cell cell)
+        /// <summary>
+        /// Копирует клетку
+        /// </summary>
+        /// <param name="cell"></param>
+        public void Copy(Cell cell)
         {
             Status = cell.Status;
             NewStatus = cell.NewStatus;
@@ -65,7 +63,7 @@ namespace life
         }
 
         /// <summary>
-        /// Нормальная клетка.
+        /// Живая клетка.
         /// </summary>
         public bool IsLive => (Status == StatusCell.Yes);
 
@@ -89,6 +87,11 @@ namespace life
         /// </summary>
         public bool IsChangeStatus => (Status != NewStatus);
 
+        /// <summary>
+        /// Отрисовывает клетку
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="b"></param>
         public void Draw(Graphics g, BitmapCellsStorage b) => Draw(g, b, Location);
 
         /// <summary>
@@ -134,7 +137,11 @@ namespace life
 
             return res;
         }
-
+        
+        /// <summary>
+        /// Рассчитывает хэшкод, зависящий от координат X и Y.
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode() => ((Location.Y & 0x7FFF) << 15) | (Location.X & 0x7FFF);
 
         public bool Equals(Cell other)

@@ -16,22 +16,33 @@ namespace life
     /// </summary>
     public class Field
     {
-        public int width;
-        public int height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
 
         /// <summary>
-        /// граница поля есть/нет
+        /// Граница поля есть/нет
         /// </summary>
-        public bool isBorder;
+        private bool border;
+
+        /// <summary>
+        /// Указывает, есть ли граница поля.
+        /// </summary>
+        public bool IsBorder => border;
 
         /// <summary>
         /// плотность генерируемого поля
         /// </summary>
-        public float density;
+        public float Density { get; private set; }
 
-        public Rectangle Rectangle { get => new Rectangle(0, 0, width, height); }
+        /// <summary>
+        /// Прямоугольник игрового поля.
+        /// </summary>
+        public Rectangle Rectangle => new Rectangle(0, 0, Width, Height);
 
-        public int Count { get => field.Count; }
+        /// <summary>
+        /// Количество живых клеток на игровом поле.
+        /// </summary>
+        public int Count => field.Count;
 
         /// <summary>
         /// Отступ от края игрового поля, где не будут располагаться клетки, кроме статичных клеток.
@@ -39,7 +50,7 @@ namespace life
         private const int padding = 2;
 
         /// <summary>
-        /// массив координат клеток вокруг данной
+        /// массив координат клеток вокруг данной.
         /// </summary>
         private readonly Point[] nearestCellsLocation = new Point[8];
 
@@ -74,13 +85,13 @@ namespace life
 
         public Field(int width, int height, ICellArray cellArray)
         {
-            this.height = height;
-            this.width = width;
+            Height = height;
+            Width = width;
 
-            isBorder = true;
+            border = true;
             
             // Стартовая плотность.
-            density = 0.3f;
+            Density = 0.3f;
 
             {
                 nearestCellsLocation[0].X = -1; nearestCellsLocation[0].Y = -1;
@@ -120,6 +131,21 @@ namespace life
                 cell.Draw(bitmapGraphics, bitmapCells);
             }
         }
+
+        /// <summary>
+        /// Определяет, содержится ли точка с данными координатами на игровом поле.
+        /// </summary>
+        /// <param name="x">Координата X точки.</param>
+        /// <param name="y">Координата Y точки.</param>
+        /// <returns>true - если точка находится в границах поля, иначе false.</returns>
+        public bool Contains(int x, int y) => (x < 0 || x >= Width || y < 0 || y >= Height);
+
+        /// <summary>
+        /// Определяет, содержится ли данная точка в игровом поле.
+        /// </summary>
+        /// <param name="p">Точка.</param>
+        /// <returns>true - если точка находится в границах поля, иначе false.</returns>
+        public bool Contains(Point p) => (p.X < 0 || p.X >= Width || p.Y < 0 || p.Y >= Height);
 
         /// <summary>
         /// Очистка игрового поля - очистка хранилища клеток, очистка истории ходов
@@ -319,7 +345,7 @@ namespace life
                 // состояние поля - на начальное
                 Clear();
 
-                SettingCells();
+                SetCells();
 
                 PrepareField();
 
@@ -507,14 +533,14 @@ namespace life
 
         private void IfNeededToMakeResizing(int dx, int dy)
         {
-            if (dx != width || dy != height)
+            if (dx != Width || dy != Height)
             {
                 Clear();
 
                 field.Resize(dx, dy);
 
-                width = dx;
-                height = dy;
+                Width = dx;
+                Height = dy;
             }
         }
 
@@ -590,7 +616,7 @@ namespace life
                     NewListCells.Add(cell);
                 }
 
-                fieldsCell.Set(cell);
+                fieldsCell.Copy(cell);
             }
 
             if (cell.IsStatic == false)
@@ -685,24 +711,24 @@ namespace life
         /// <summary>
         /// Заполнение поля клетками 
         /// </summary>
-        internal void SettingCells()
+        internal void SetCells()
         {
             SetRandomCells();   // случайным образом
 
-            if (isBorder)
+            if (IsBorder)
             {
                 SetStaticBorderCells();   // Граница игрового поля
             }
         }
 
-        internal void SettingCells(int dx, int dy, float density, bool isBorderCells)
+        public void SetCells(int dx, int dy, float density, bool isBorderCells)
         {
             Clear();
 
             IfNeededToMakeResizing(dx, dy);
 
-            this.density = density;
-            isBorder = isBorderCells;
+            this.Density = density;
+            border = isBorderCells;
 
             SetRandomCells();   // случайным образом
 
@@ -714,16 +740,16 @@ namespace life
 
         private void SetStaticBorderCells()
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < Width; x++)
             {
                 field[x, 0] = new Cell(x, 0) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
-                field[x, height - 1] = new Cell(x, height - 1) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
+                field[x, Height - 1] = new Cell(x, Height - 1) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
             }
 
-            for (int y = 1; y < height - 1; y++)
+            for (int y = 1; y < Height - 1; y++)
             {
                 field[0, y] = new Cell(0, y) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
-                field[width - 1, y] = new Cell(width - 1, y) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
+                field[Width - 1, y] = new Cell(Width - 1, y) { Status = StatusCell.Static, NewStatus = StatusCell.Static };
             }
         }
 
@@ -733,7 +759,7 @@ namespace life
             Random rndX = new Random(rnd.Next());
             Random rndY = new Random(rnd.Next());
 
-            int needNumberOfCells = (int)((width - padding * 2) * (height - padding * 2) * density);
+            int needNumberOfCells = (int)((Width - padding * 2) * (Height - padding * 2) * Density);
 
             while (needNumberOfCells > 0)
             {
@@ -742,8 +768,8 @@ namespace life
 
                 do
                 {
-                    x = rndX.Next(padding, width - padding);
-                    y = rndY.Next(padding, height - padding);
+                    x = rndX.Next(padding, Width - padding);
+                    y = rndY.Next(padding, Height - padding);
                 }
                 while (field[x, y] != null);
 

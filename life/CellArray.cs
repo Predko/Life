@@ -54,7 +54,7 @@ namespace life
                     if (value != null)
                     {
                         // Меняем уже имеющуюся клетку.
-                        cells[x, y].Set(value);
+                        cells[x, y].Copy(value);
                     }
                     else
                     {
@@ -87,7 +87,7 @@ namespace life
             }
             else
             {
-                cells[cell.Location.X, cell.Location.Y].Set(cell);
+                cells[cell.Location.X, cell.Location.Y].Copy(cell);
             }
         }
 

@@ -14,39 +14,51 @@ namespace life
     /// </summary>
     public class Block : IEnumerable<Cell>
     {
-        private int minX, maxX;
-        private int minY, maxY;
+        /// <summary>
+        /// Координата X блока.
+        /// </summary>
+        public int X { get => rectangle.X; private set => rectangle.X = value; }
+
+        /// <summary>
+        /// Координата Y блока.
+        /// </summary>
+        public int Y { get => rectangle.Y; private set => rectangle.Y = value; }
+
+        /// <summary>
+        /// Ширина блока.
+        /// </summary>
+        public int Width { get => rectangle.Width; private set => rectangle.Width = value; }
+
+        /// <summary>
+        /// Высота блока.
+        /// </summary>
+        public int Height { get => rectangle.Height; private set => rectangle.Height = value; }
 
         /// <summary>
         /// Размер блока.
         /// </summary>
-        public Size Size => new Size(maxX - minX + 1, maxY - minY + 1);
+        public Size Size => rectangle.Size;
 
         /// <summary>
-        /// Прямоугольник, ограничивающий блок/
+        /// Прямоугольник, ограничивающий блок.
         /// </summary>
-        public Rectangle Rectangle
-        {
-            get => new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
-            set
-            {
-                minX = value.X;
-                minY = value.Y;
-                maxX = value.X + value.Width;
-                maxY = value.Y + value.Height;
-            }
-        }
+        public Rectangle Rectangle => rectangle;
 
         /// <summary>
         /// Возвращает начальную точку прямоугольника, ограничивающего блок.
         /// </summary>
-        public Point Location => new Point(minX, minY);
+        public Point Location => rectangle.Location;
+
+
+        /// <summary>
+        /// Прямоугольник, ограничивающий блок.
+        /// </summary>
+        private Rectangle rectangle;
 
         /// <summary>
         /// Список клеток игрового поля.
         /// </summary>
         private readonly List<Cell> cells;
-
 
         /// <summary>
         /// Корректируем координаты прямоугольника блока.
@@ -54,17 +66,17 @@ namespace life
         /// <param name="cell">Добавляемая клетка.</param>
         private void AdjustRectangle(Cell cell)
         {
-            if (cell.Location.X < minX)
-                minX = cell.Location.X;
+            if (cell.Location.X < X)
+                X = cell.Location.X;
             else
-            if (cell.Location.X > maxX)
-                maxX = cell.Location.X;
+            if (cell.Location.X >= X + Width)
+                Width = cell.Location.X - X + 1;
 
-            if (cell.Location.Y < minY)
-                minY = cell.Location.Y;
+            if (cell.Location.Y < Y)
+                Y = cell.Location.Y;
             else
-            if (cell.Location.Y > maxY)
-                maxY = cell.Location.Y;
+            if (cell.Location.Y > Height)
+                Height = cell.Location.Y - Y + 1;
         }
 
         /// <summary>
@@ -118,14 +130,18 @@ namespace life
         {
             cells = new List<Cell>();
 
-            minX = minY = maxX = maxY = 0;
+            rectangle = Rectangle.Empty;
         }
 
+        /// <summary>
+        /// Создаёт новый блок из клеток указанного игрового поля.
+        /// </summary>
+        /// <param name="field">Игровое поле.</param>
         public Block(Field field)
         {
             cells = new List<Cell>();
 
-            minX = minY = maxX = maxY = 0;
+            rectangle = Rectangle.Empty;
 
             cells.AddRange(field.GetCells());
         }
@@ -137,7 +153,7 @@ namespace life
         public void SetStartPoint(Point start)
         {
             // Вычисляем смещение координат.
-            start.Offset(-minX, -minY);
+            start.Offset(-X, -Y);
 
             for (int i = 0; i < cells.Count; i++)
             {
@@ -145,10 +161,7 @@ namespace life
             }
 
             // Корректируем границы блока после изменения стартовой точки.
-            {
-                minX += start.X; maxX += start.X;
-                minY += start.Y; maxY += start.Y;
-            }
+            rectangle.Offset(start);
         }
 
         /// <summary>
@@ -161,8 +174,10 @@ namespace life
             // минимальных и максимальных значений координат. 
             if (cells.Count == 0)
             {
-                minX = maxX = cell.Location.X;
-                minY = maxY = cell.Location.Y;
+                X = cell.Location.X;
+                Y = cell.Location.Y;
+
+                Width = Height = 1;
             }
             else
             {
@@ -191,7 +206,7 @@ namespace life
         {
             cells.Clear();
 
-            Rectangle = Rectangle.Empty;
+            rectangle = Rectangle.Empty;
         }
 
         /// <summary>
@@ -207,17 +222,7 @@ namespace life
                 {
                     try
                     {
-                        cells.Clear();
-
-                        int dx = ReadInt(reader);
-                        int dy = ReadInt(reader);
-
-                        int count = ReadInt(reader);
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            Add(ReadCell(reader));
-                        }
+                        Load(reader);
                     }
                     catch (Exception ex)
                     {
@@ -227,14 +232,36 @@ namespace life
             }
             else
             {
-                Rectangle = Rectangle.Empty;
+                rectangle = Rectangle.Empty;
             }
 
             return Size;
         }
 
         /// <summary>
-        /// Запись блока игрового поля в указанный файл.
+        /// Читает блок клеток из потока.
+        /// </summary>
+        /// <param name="reader">Поток для чтения.</param>
+        /// <returns>Размер блока.</returns>
+        public Size Load(StreamReader reader)
+        {
+            Clear();
+
+            Width = ReadInt(reader);
+            Height = ReadInt(reader);
+
+            int count = ReadInt(reader);
+
+            for (int i = 0; i < count; i++)
+            {
+                Add(ReadCell(reader));
+            }
+
+            return Size;
+        }
+
+        /// <summary>
+        /// Запись блока клеток в указанный файл.
         /// Формат текстового файла:
         /// {width},{height},{Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
         /// </summary>
@@ -243,24 +270,32 @@ namespace life
         {
             if (cells.Count != 0 && filename != null)
             {
-
                 try
                 {
                     using (StreamWriter writer = new StreamWriter(filename))
                     {
-                        writer.Write($"{Size.Width},{Size.Height},{cells.Count}:");
-
-                        foreach (var cell in cells)
-                        {
-                            char isStaticCell = (cell.IsStatic) ? 's' : 'n';
-                            writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
-                        }
+                        Save(writer);
                     }
                 }
                 catch (Exception e)
                 {
                     MessageBox.Show(e.Message + $"public void {GetType().Name}::SaveToFile(string filename)");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Сохраняет блок клеток в потоке.
+        /// </summary>
+        /// <param name="writer">Поток для сохранения.</param>
+        private void Save(StreamWriter writer)
+        {
+            writer.Write($"{Size.Width},{Size.Height},{cells.Count}:");
+
+            foreach (var cell in cells)
+            {
+                char isStaticCell = (cell.IsStatic) ? 's' : 'n';
+                writer.Write($"{cell.Location.X},{cell.Location.Y},{isStaticCell};");
             }
         }
 
@@ -284,18 +319,16 @@ namespace life
         public void Draw(Field field, Graphics g, BitmapCellsStorage bitmaps, int x, int y)
         {
             // Смещение для определения координат клеток.
-            int dx = x - minX;
-            int dy = y - minY;
+            int dx = x - X;
+            int dy = y - Y;
 
             foreach (Cell cell in cells)
             {
-                Point p = new Point()
-                {
-                    X = cell.Location.X + dx,
-                    Y = cell.Location.Y + dy
-                };
+                Point p = cell.Location;
 
-                if (p.X < 0 || p.X >= field.width || p.Y < 0 || p.Y >= field.height)
+                p.Offset(dx, dy);
+
+                if (field.Contains(p))
                 {
                     return; // Клетка блока находится вне поля, отрисовке не подлежит
                 }
