@@ -241,7 +241,7 @@ namespace life
             //startMoveLocation = startSelection;
 
             // Прямоугольник выделения в координатах игрового поля.
-            Rectangle fieldSselection = new Rectangle()
+            Rectangle fieldSelection = new Rectangle()
             {
                 X = selection.X / cellSize,
                 Y = selection.Y / cellSize,
@@ -250,7 +250,7 @@ namespace life
             };
 
             // Точка установки блока.
-            Point pointToPlace = fieldSselection.Location;
+            Point pointToPlace = fieldSelection.Location;
 
             // Перерисовываем игровое поле в месте выделения блока.
             field.Draw(bitmapGraphics, BitmapCells, selectedCells.Rectangle);
@@ -266,7 +266,7 @@ namespace life
             }
 
             // Отрисовываем блок в новом месте.
-            field.Draw(bitmapGraphics, BitmapCells, fieldSselection);
+            field.Draw(bitmapGraphics, BitmapCells, fieldSelection);
 
             // Сохраняем новое состояние игрового поля.
             {
@@ -275,7 +275,7 @@ namespace life
                 SavedBitmapField = new Bitmap(bitmap);
 
                 selectedCells.Clear();
-                selectedCells.AddRange(field.GetCells(fieldSselection));
+                selectedCells.AddRange(field.GetCells(fieldSelection));
 
                 // Отрисовываем прямоугольник выделения.
                 bitmapGraphics.FillRectangle(OpacityBrush, selection);
@@ -425,6 +425,8 @@ namespace life
             panelField.MouseUp += PanelField_MouseUp_InSelectionMode;
             panelField.MouseMove += PanelField_MouseMove_InSelectionMode;
             panelField.LostFocus += PanelField_LostFocus_InSelectionMode;
+
+            btnSaveField.Click += BtnSaveField_Click_InSelectionMode;
         }
 
         /// <summary>
@@ -432,6 +434,8 @@ namespace life
         /// </summary>
         private void RemoveMouseEventForSelectionMode()
         {
+            btnSaveField.Click -= BtnSaveField_Click_InSelectionMode;
+
             panelField.MouseClick -= PanelField_MouseClick_InSelectionMode;
             panelField.MouseDown -= PanelField_MouseDown_InSelectionMode;
             panelField.MouseUp -= PanelField_MouseUp_InSelectionMode;
@@ -441,6 +445,20 @@ namespace life
             MouseEditingGameFieldMode(turnOn);
         }
 
+        /// <summary>
+        /// Сохранить выбранный блок игрового поля в файл.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnSaveField_Click_InSelectionMode(object sender, EventArgs e)
+        {
+            if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            selectedCells.SaveToFile(saveFileDialog.FileName);
+        }
 
         /// <summary>
         /// Если уже был произведён выход из режима выбора, равно true.
