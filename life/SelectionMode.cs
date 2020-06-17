@@ -99,8 +99,14 @@ namespace life
             return r;
         }
 
+        /// <summary>
+        /// Предыдущий прямоугольник выделения
+        /// </summary>
         private Rectangle oldSelection = Rectangle.Empty;
 
+        /// <summary>
+        /// Изображение игрового поля.
+        /// </summary>
         private Bitmap SavedBitmapField;
 
         /// <summary>
@@ -128,35 +134,9 @@ namespace life
         }
 
         /// <summary>
-        /// Проверяет, находится ли точка внутри прямоугольника(вкючая границы), 
-        /// ограниченного точками startSelection и endSelection.
-        /// </summary>
-        /// <param name="p">Проверяемая точка.</param>
-        /// <returns>true - если точка принадлежит прямоугольнику.</returns>
-        private bool IsInsideSelection(Point p)
-        {
-            return Selection.Contains(p);
-        }
-
-        /// <summary>
-        /// Блок выбран.
-        /// </summary>
-        private bool isSelected = false;
-
-        /// <summary>
-        /// Режим перемещения блока.
-        /// </summary>
-        private bool isMoveMode = false;
-
-        /// <summary>
         /// Выбранный блок клеток.
         /// </summary>
         private Block selectedCells;
-
-        /// <summary>
-        /// Стартовая точка в режиме перемещения.
-        /// </summary>
-        private Point startMoveLocation;
 
         /// <summary>
         /// Начало процесса выбора прямоугольного блока игрового поля.
@@ -164,10 +144,6 @@ namespace life
         /// <param name="current"></param>
         private void StartSelection(Point current)
         {
-            SetMouseEventForSelectionMode();
-
-            isLeaveSelectionMode = false;
-
             startSelection = endSelection = current;
 
             oldSelection = Rectangle.Empty;
@@ -175,7 +151,18 @@ namespace life
             // Сохраняем текущее изображение поля(bitmap).
             SavedBitmapField = new Bitmap(bitmap);
 
-            isSelected = false;
+            isExit = false;
+
+            if (selectedCells != null)
+            {
+                selectedCells.Clear();
+            }
+            else
+            {
+                selectedCells = new Block();
+            }
+
+            IsSelected = false;
 
             isMoveMode = false;
         }
@@ -187,11 +174,9 @@ namespace life
         {
             CorrectStartEndPoint();
 
-            selectedCells = new Block();
-
             Rectangle selection = Selection;
 
-            Rectangle seletedRectangle = new Rectangle()
+            Rectangle seletedFieldRectangle = new Rectangle()
             {
                 X = selection.X / cellSize,
                 Y = selection.Y / cellSize,
@@ -199,7 +184,7 @@ namespace life
                 Height = selection.Height / cellSize
             };
 
-            selectedCells.AddRange(field.GetCells(seletedRectangle));
+            selectedCells.AddRange(field.GetCells(seletedFieldRectangle));
         }
 
         /// <summary>
@@ -228,7 +213,11 @@ namespace life
             }
         }
 
-        private void MoveSelected(Point current)
+        /// <summary>
+        /// Копирует выбранный блок в указанную точку.
+        /// </summary>
+        /// <param name="current">Положение блока.</param>
+        private void CopySelected(Point current)
         {
             // Прямоугольник выделения на месте установки блока.
             Rectangle selection = OffsetSelection(current);
@@ -286,6 +275,10 @@ namespace life
             panelField.Invalidate();
         }
 
+        /// <summary>
+        /// Отрисовывает выделенный блок в указанной точке.
+        /// </summary>
+        /// <param name="current">Положение блока.</param>
         private void DrawSelectedBlock(Point current)
         {
             Rectangle selection = OffsetSelection(current);
@@ -324,7 +317,7 @@ namespace life
         /// <summary>
         /// Отрисовка прямоугольника выделения.
         /// </summary>
-        /// <param name="current"></param>
+        /// <param name="current">Вторая координата прямоугольника выделения.</param>
         private void DrawSelectionRectangle(Point current)
         {
             endSelection = current;
@@ -349,137 +342,26 @@ namespace life
                                        oldSelection,
                                        GraphicsUnit.Pixel);
 
-        private void PanelField_MouseClick_InSelectionMode(object sender, MouseEventArgs e)
-        {
-        }
-
-        private void PanelField_MouseDown_InSelectionMode(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                if (isSelected)
-                {
-                    if (IsInsideSelection(e.Location))
-                    {
-                        // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
-                        isMoveMode = true;
-
-                        startMoveLocation = e.Location;
-                    }
-                    else
-                    {
-                        // Блок выбран, но кнопка мыши нажата вне выделенного блока - сбрасываем выделение.
-                        LeaveSelectionMode();
-                    }
-                }
-            }
-        }
-
-        private void PanelField_MouseUp_InSelectionMode(object sender, MouseEventArgs e)
-        {
-            if (isSelected == false)
-            {
-                isSelected = true;
-
-                SelectBlock();
-            }
-            else
-            if (isMoveMode)
-            {
-                MoveSelected(e.Location);
-            }
-        }
-
-        private void PanelField_MouseMove_InSelectionMode(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                if (isSelected == false)
-                {
-                    DrawSelectionRectangle(e.Location);
-                }
-                else
-                if (isMoveMode)
-                {
-                    DrawSelectedBlock(e.Location);
-                }
-            }
-        }
-
-        private void PanelField_LostFocus_InSelectionMode(object sender, EventArgs e)
-        {
-            LeaveSelectionMode();
-
-            MouseEditingGameFieldMode(turnOff);
-        }
-
         /// <summary>
-        /// Устанавливает обработчики событий мыши для режима выбора блока.
+        /// Показывает, был ли осуществлён выход из режима выделения блока.
         /// </summary>
-        private void SetMouseEventForSelectionMode()
-        {
-            MouseEditingGameFieldMode(turnOff);
-
-            panelField.MouseClick += PanelField_MouseClick_InSelectionMode;
-            panelField.MouseDown += PanelField_MouseDown_InSelectionMode;
-            panelField.MouseUp += PanelField_MouseUp_InSelectionMode;
-            panelField.MouseMove += PanelField_MouseMove_InSelectionMode;
-            panelField.LostFocus += PanelField_LostFocus_InSelectionMode;
-
-            btnSaveField.Click += BtnSaveField_Click_InSelectionMode;
-        }
-
-        /// <summary>
-        /// Восстанавливает обработчики событий мыши.
-        /// </summary>
-        private void RemoveMouseEventForSelectionMode()
-        {
-            btnSaveField.Click -= BtnSaveField_Click_InSelectionMode;
-
-            panelField.MouseClick -= PanelField_MouseClick_InSelectionMode;
-            panelField.MouseDown -= PanelField_MouseDown_InSelectionMode;
-            panelField.MouseUp -= PanelField_MouseUp_InSelectionMode;
-            panelField.MouseMove -= PanelField_MouseMove_InSelectionMode;
-            panelField.LostFocus -= PanelField_LostFocus_InSelectionMode;
-
-            MouseEditingGameFieldMode(turnOn);
-        }
-
-        /// <summary>
-        /// Сохранить выбранный блок игрового поля в файл.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnSaveField_Click_InSelectionMode(object sender, EventArgs e)
-        {
-            if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
-            {
-                return;
-            }
-
-            selectedCells.SaveToFile(saveFileDialog.FileName);
-        }
-
-        /// <summary>
-        /// Если уже был произведён выход из режима выбора, равно true.
-        /// </summary>
-        private bool isLeaveSelectionMode = false;
-
+        private bool isExit;
+        
         /// <summary>
         /// Выход из режима выбора блока игрового поля.
         /// </summary>
-        private void LeaveSelectionMode()
+        private void ExitSelectionMode()
         {
-            if (isLeaveSelectionMode)
+            if (isExit)
             {
                 return;
             }
 
-            isLeaveSelectionMode = true;
+            isExit = true;
 
             isMoveMode = false;
-            
-            panelField.Enabled = false;
+
+            IsSelectionMode = false;
 
             // Восстанавливаем поле после предыдущего выбора.
             {
@@ -491,18 +373,6 @@ namespace life
 
                 SavedBitmapField = null;
             }
-
-            if (selectedCells != null)
-            {
-                selectedCells.Clear();
-
-                selectedCells = null;
-            }
-
-            // Выходим из режима выделения - восстанавливаем обработчики событий мыши.
-            RemoveMouseEventForSelectionMode();
-
-            panelField.Enabled = true;
         }
     }
 }

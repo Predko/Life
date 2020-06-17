@@ -10,7 +10,61 @@ namespace life
 {
     public partial class LifeForm : Form
     {
-        private Point newMouseDownCoordinate;
+        /// <summary>
+        /// Последняя координата в момент нажатия левой клавиши мыши.
+        /// </summary>
+        private Point LastMouseDownCoordinate;
+
+        /// <summary>
+        /// Проверяет, находится ли точка внутри прямоугольника, 
+        /// ограниченного точками startSelection и endSelection.
+        /// </summary>
+        /// <param name="p">Проверяемая точка.</param>
+        /// <returns>true - если точка принадлежит прямоугольнику.</returns>
+        private bool IsInsideSelection(Point p)
+        {
+            return Selection.Contains(p);
+        }
+
+        /// <summary>
+        /// Блок выбран.
+        /// </summary>
+        private bool IsSelected
+        {
+            get => isSelected;
+            set
+            {
+                if (value)
+                {
+                    // Отключаем редактирование клетки.
+                    IsSetCellMode = false;
+                }
+
+                isSelected = value;
+            }
+        }
+
+        private bool isSelected;
+
+        /// <summary>
+        /// Режим перемещения блока.
+        /// </summary>
+        private bool isMoveMode = false;
+
+        /// <summary>
+        /// Стартовая точка в режиме перемещения.
+        /// </summary>
+        private Point startMoveLocation;
+
+        /// <summary>
+        /// Режим редактирования клетки игрового поля.
+        /// </summary>
+        private bool IsSetCellMode { get; set; }
+
+        /// <summary>
+        /// Указывает, находится ли программа в режиме выбора блока.
+        /// </summary>
+        private bool IsSelectionMode { get; set; }
 
         /// <summary>
         /// Минимальное смещение мыши с нажатой левой кнопкой,
@@ -33,35 +87,11 @@ namespace life
         /// false - если нет.</returns>
         private bool IsSetSelectionMode(Point currentPosition)
         {
-            Point p = newMouseDownCoordinate;
+            Point p = LastMouseDownCoordinate;
 
             p.Offset(-currentPosition.X, -currentPosition.Y);
 
-            if (Math.Abs(p.X) > minOffsetMouseForSelect || Math.Abs(p.Y) > minOffsetMouseForSelect)
-            {
-                StartSelection(currentPosition);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private void PanelField_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                // Проверяем, не был ли выбран блок ранее, если да - отключаем выделение
-                // В этом случае, клетку не устанавливаем.
-                if (isSelected)
-                {
-                    isSelected = false;
-                }
-                else
-                {
-                    SetCellToField(e.Location);
-                }
-            }
+            return (Math.Abs(p.X) > minOffsetMouseForSelect || Math.Abs(p.Y) > minOffsetMouseForSelect);
         }
 
         /// <summary>
@@ -130,30 +160,126 @@ namespace life
             }
         }
 
+        /// <summary>
+        /// Обработчик события нажатия клавиши мыши.
+        /// Обрабатывает нажатие левой клавиши мыши в режиме, когда блок уже выбран,
+        ///  и подготавливает переменные к режиму выделения или режиму редактирования клетки.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanelField_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                newMouseDownCoordinate = e.Location;
-            }
-        }
-
-        private void PanelField_MouseUp(object sender, MouseEventArgs e)
-        {
-        }
-
-        private void PanelField_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (MouseButtons == MouseButtons.Left)
-            {
-                // Проверяем, надо ли включить режим выбора блока.
-                if (IsSetSelectionMode(e.Location))
+                if (IsSelected)
                 {
-                    return;
+                    // Блок выбран.
+                    if (IsInsideSelection(e.Location))
+                    {
+                        // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
+                        isMoveMode = true;
+
+                        startMoveLocation = e.Location;
+                    }
+                    else
+                    {
+                        // Блок выбран, но кнопка мыши нажата вне выделенного блока.
+                        IsSelected = false;
+
+                        selectedCells.Clear();
+
+                        // Выходим из режима выделения.
+                        ExitSelectionMode();
+                    }
+                }
+                else
+                {
+                    // Запоминаем координату мыши, для возможного входа в режим выбора блока.
+                    LastMouseDownCoordinate = e.Location;
+
+                    // Включаем режим редактирования клетки.
+                    IsSetCellMode = true;
                 }
             }
         }
 
+        /// <summary>
+        /// Обработчик события отпускания клавиши мыши.
+        /// Завершает режим выделения, режим перемещения(копирования) блока 
+        /// и включает редактирование клетки игрового поля.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void PanelField_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                if (IsSelectionMode)
+                {
+                    // Создаём блок клеток из выделенной области.
+                    IsSelectionMode = false;
+
+                    SelectBlock();
+
+                    IsSelected = true;
+                }
+                else
+                if (isMoveMode)
+                {
+                    // Копируем выбранный блок в в новую позицию. 
+                    CopySelected(e.Location);
+                }
+                else
+                if (IsSetCellMode)
+                {
+                    // Редактируем клетку в текущей позиции мыши.
+                    SetCellToField(e.Location);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обработчик события перемещения мыши при нажатой левой клавише.
+        /// В режиме выделения - отрисовывает прямоугольник выделения.
+        /// В режиме перемещения блока - отрисовывает блок с выделением.
+        /// В режиме редактирования клетки игрового поля - проверяет возможность 
+        /// перехода в режим выбора блока.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void PanelField_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (MouseButtons == MouseButtons.Left)
+            {
+                if (IsSelectionMode)
+                {
+                    // Мы в режиме выделения.
+                    // Отрисовываем прямоугольник выделения.
+                    DrawSelectionRectangle(e.Location);
+                }
+                else
+                if (isMoveMode)
+                {
+                    // Режим перемещения блока.
+                    // Отрисовываем блок в новой позиции.
+                    DrawSelectedBlock(e.Location);
+                }
+                else
+                if (IsSetCellMode && IsSetSelectionMode(e.Location))
+                {
+                    // Переходим к режиму выбора блока.
+                    IsSelectionMode = true;
+
+                    StartSelection(e.Location);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Устанавливает обработчики событий мыши для редактирования игрового поля,
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanelField_MouseEnter(object sender, EventArgs e)
         {
             // Проверяем, можно ли включить режим редактирования игрового поля.
@@ -168,11 +294,23 @@ namespace life
             MouseEditingGameFieldMode(turnOn);
         }
 
+        /// <summary>
+        /// Выходит из режима редактирования игрового поля при потере фокуса панелью.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanelField_LostFocus(object sender, EventArgs e)
         {
+            ExitSelectionMode();
+
             MouseEditingGameFieldMode(turnOff);
         }
 
+        /// <summary>
+        /// Отрисовывает панель игрового поля.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PanelField_Paint(object sender, PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -185,8 +323,15 @@ namespace life
         /// Указывает, вкючён ли режим редактирования.
         /// </summary>
         private bool mouseSelectionModeOn = false;
-
+        
+        /// <summary>
+        /// Включить режим редактирования.
+        /// </summary>
         private const bool turnOn = true;
+        
+        /// <summary>
+        /// Выключить режим редактирования.
+        /// </summary>
         private const bool turnOff = false;
 
         /// <summary>
@@ -215,7 +360,6 @@ namespace life
         /// </summary>
         private void PanelField_RemoveMouseEvent()
         {
-            panelField.MouseClick -= PanelField_MouseClick;
             panelField.MouseDown -= PanelField_MouseDown;
             panelField.MouseMove -= PanelField_MouseMove;
             panelField.MouseUp -= PanelField_MouseUp;
@@ -227,7 +371,6 @@ namespace life
         /// </summary>
         private void PanelField_AddMouseEvent()
         {
-            panelField.MouseClick += PanelField_MouseClick;
             panelField.MouseDown += PanelField_MouseDown;
             panelField.MouseMove += PanelField_MouseMove;
             panelField.MouseUp += PanelField_MouseUp;
