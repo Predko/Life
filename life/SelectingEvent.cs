@@ -171,35 +171,44 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-                if (IsSelected)
+                LeftMouseDawn(e.Location);
+            }
+        }
+
+        /// <summary>
+        /// Обработка нажатия на левую клавишу мыши.
+        /// </summary>
+        /// <param name="e"></param>
+        private void LeftMouseDawn(Point current)
+        {
+            if (IsSelected)
+            {
+                // Блок выбран.
+                if (IsInsideSelection(current))
                 {
-                    // Блок выбран.
-                    if (IsInsideSelection(e.Location))
-                    {
-                        // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
-                        isMoveMode = true;
+                    // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
+                    isMoveMode = true;
 
-                        startMoveLocation = e.Location;
-                    }
-                    else
-                    {
-                        // Блок выбран, но кнопка мыши нажата вне выделенного блока.
-                        IsSelected = false;
-
-                        selectedCells.Clear();
-
-                        // Выходим из режима выделения.
-                        ExitSelectionMode();
-                    }
+                    startMoveLocation = current;
                 }
                 else
                 {
-                    // Запоминаем координату мыши, для возможного входа в режим выбора блока.
-                    LastMouseDownCoordinate = e.Location;
+                    // Блок выбран, но кнопка мыши нажата вне выделенного блока.
+                    IsSelected = false;
 
-                    // Включаем режим редактирования клетки.
-                    IsSetCellMode = true;
+                    selectedCells.Clear();
+
+                    // Выходим из режима выделения.
+                    ExitSelectionMode();
                 }
+            }
+            else
+            {
+                // Запоминаем координату мыши, для возможного входа в режим выбора блока.
+                LastMouseDownCoordinate = current;
+
+                // Включаем режим редактирования клетки.
+                IsSetCellMode = true;
             }
         }
 
@@ -214,27 +223,41 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-                if (IsSelectionMode)
-                {
-                    // Создаём блок клеток из выделенной области.
-                    IsSelectionMode = false;
+                LeftMouseUp(e.Location);
+            }
+            else
+            if (e.Button == MouseButtons.Right)
+            {
 
-                    SelectBlock();
+            }
+        }
 
-                    IsSelected = true;
-                }
-                else
-                if (isMoveMode)
-                {
-                    // Копируем выбранный блок в в новую позицию. 
-                    CopySelected(e.Location);
-                }
-                else
-                if (IsSetCellMode)
-                {
-                    // Редактируем клетку в текущей позиции мыши.
-                    SetCellToField(e.Location);
-                }
+        /// <summary>
+        /// Обработка отпускания левой клавиши мыши.
+        /// </summary>
+        /// <param name="current"></param>
+        private void LeftMouseUp(Point current)
+        {
+            if (IsSelectionMode)
+            {
+                // Создаём блок клеток из выделенной области.
+                IsSelectionMode = false;
+
+                SelectBlock();
+
+                IsSelected = true;
+            }
+            else
+            if (isMoveMode)
+            {
+                // Копируем выбранный блок в в новую позицию. 
+                CopySelected(current);
+            }
+            else
+            if (IsSetCellMode)
+            {
+                // Редактируем клетку в текущей позиции мыши.
+                SetCellToField(current);
             }
         }
 
@@ -323,12 +346,12 @@ namespace life
         /// Указывает, вкючён ли режим редактирования.
         /// </summary>
         private bool mouseSelectionModeOn = false;
-        
+
         /// <summary>
         /// Включить режим редактирования.
         /// </summary>
         private const bool turnOn = true;
-        
+
         /// <summary>
         /// Выключить режим редактирования.
         /// </summary>

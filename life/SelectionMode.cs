@@ -151,8 +151,6 @@ namespace life
             // Сохраняем текущее изображение поля(bitmap).
             SavedBitmapField = new Bitmap(bitmap);
 
-            isExit = false;
-
             if (selectedCells != null)
             {
                 selectedCells.Clear();
@@ -343,21 +341,15 @@ namespace life
                                        GraphicsUnit.Pixel);
 
         /// <summary>
-        /// Показывает, был ли осуществлён выход из режима выделения блока.
-        /// </summary>
-        private bool isExit;
-        
-        /// <summary>
         /// Выход из режима выбора блока игрового поля.
         /// </summary>
         private void ExitSelectionMode()
         {
-            if (isExit)
+            if (SavedBitmapField == null)
             {
+                // Выход из режима редактирования уже был выполнен.
                 return;
             }
-
-            isExit = true;
 
             isMoveMode = false;
 

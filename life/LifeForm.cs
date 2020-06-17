@@ -13,8 +13,7 @@ namespace life
 {
     public partial class LifeForm : Form
     {
-        private readonly IContainer components = null;
-
+        private IContainer components;
         private TableLayoutPanel tlPanel;
 
         private FlowLayoutPanel flpGameCantrols;
@@ -35,6 +34,12 @@ namespace life
         private HScrollBar hsbTimer;
         private TableLayoutPanel tableLayoutPanel1;
         private Label lblSpeedGame;
+        private ContextMenuStrip contextMenuStripPanelField;
+        private ToolStripMenuItem saveBlockToolStripMenuItem;
+        private ToolStripMenuItem loadBlockToolStripMenuItem;
+        private ToolStripMenuItem copyToolStripMenuItem;
+        private ToolStripMenuItem deleteToolStripMenuItem;
+        private ToolStripMenuItem PasteToolStripMenuItem;
         private FlowLayoutPanel flpSettingField;
 
         public LifeForm() : base()
@@ -75,6 +80,7 @@ namespace life
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.tlPanel = new System.Windows.Forms.TableLayoutPanel();
             this.flpSettingField = new System.Windows.Forms.FlowLayoutPanel();
             this.staticCellsComboBox = new System.Windows.Forms.ComboBox();
@@ -92,10 +98,17 @@ namespace life
             this.lbCount = new System.Windows.Forms.Label();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.contextMenuStripPanelField = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.saveBlockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadBlockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tlPanel.SuspendLayout();
             this.flpSettingField.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.flpGameCantrols.SuspendLayout();
+            this.contextMenuStripPanelField.SuspendLayout();
             this.SuspendLayout();
             // 
             // tlPanel
@@ -315,6 +328,48 @@ namespace life
             // 
             this.saveFileDialog.Filter = "*.life|*.life|*.save|*.save";
             // 
+            // contextMenuStripPanelField
+            // 
+            this.contextMenuStripPanelField.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.contextMenuStripPanelField.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveBlockToolStripMenuItem,
+            this.loadBlockToolStripMenuItem,
+            this.copyToolStripMenuItem,
+            this.deleteToolStripMenuItem,
+            this.PasteToolStripMenuItem});
+            this.contextMenuStripPanelField.Name = "contextMenuStripPanelField";
+            this.contextMenuStripPanelField.Size = new System.Drawing.Size(172, 164);
+            // 
+            // saveBlockToolStripMenuItem
+            // 
+            this.saveBlockToolStripMenuItem.Name = "saveBlockToolStripMenuItem";
+            this.saveBlockToolStripMenuItem.Size = new System.Drawing.Size(171, 32);
+            this.saveBlockToolStripMenuItem.Text = "Save block";
+            // 
+            // loadBlockToolStripMenuItem
+            // 
+            this.loadBlockToolStripMenuItem.Name = "loadBlockToolStripMenuItem";
+            this.loadBlockToolStripMenuItem.Size = new System.Drawing.Size(171, 32);
+            this.loadBlockToolStripMenuItem.Text = "Load block";
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(171, 32);
+            this.copyToolStripMenuItem.Text = "Copy";
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(171, 32);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            // 
+            // PasteToolStripMenuItem
+            // 
+            this.PasteToolStripMenuItem.Name = "PasteToolStripMenuItem";
+            this.PasteToolStripMenuItem.Size = new System.Drawing.Size(171, 32);
+            this.PasteToolStripMenuItem.Text = "Paste";
+            // 
             // LifeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -337,6 +392,7 @@ namespace life
             this.tableLayoutPanel1.PerformLayout();
             this.flpGameCantrols.ResumeLayout(false);
             this.flpGameCantrols.PerformLayout();
+            this.contextMenuStripPanelField.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
