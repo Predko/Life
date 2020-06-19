@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -350,11 +351,55 @@ namespace life
         /// <param name="e"></param>
         private void BtnLoadField_Click(object sender, EventArgs e)
         {
-            LoadField();
+            if (LoadField() == false)
+            {
+                // Загрузка завершилась с ошибкой.
+                return;
+            }
 
             MoveCounter = 0;
 
             panelField.Invalidate();
+        }
+
+        /// <summary>
+        /// Загрузка игрового поля с изменением размера клетки
+        /// </summary>
+        private bool LoadField()
+        {
+            var block = LoadBlock();
+
+            Size size = block.Size;
+
+            if (block.IsGameBlock)
+            {
+                MessageBox.Show("Невозможно загрузить блок игровых клеток в качестве игрового поля");
+
+                return false;
+            }
+
+            field.SetField(block);
+
+            ResizeField(size.Width, size.Height);
+
+            return true;
+        }
+
+        private Block LoadBlock()
+        {
+            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+                return null;
+            }
+
+            Block block = new Block();
+            
+            if (block.LoadFromFile(openFileDialog.FileName) == false)
+            {
+                return null;
+            }
+
+            return block;
         }
 
         /// <summary>
@@ -428,5 +473,16 @@ namespace life
             }
         }
 
+        /// <summary>
+        /// Устанавливает скорость игры, изменением интервала таймера.
+        /// Изменяет значение скорости в lblSpeedGame.
+        /// </summary>
+        /// <param name="value">Текущее положение ползунка hsbTimer.Value</param>
+        private void SetSpeedGame(int value)
+        {
+            timer.Interval = (value < 10) ? 500 : 510 - value;
+
+            lblSpeedGame.Text = $"Speed: {(value / 10),2:d}";
+        }
     }
 }

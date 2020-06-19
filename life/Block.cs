@@ -15,6 +15,33 @@ namespace life
     public class Block : IEnumerable<Cell>
     {
         /// <summary>
+        /// Блок - игровое поле целиком.
+        /// </summary>
+        public const bool GameField = false;
+
+        /// <summary>
+        /// Блок - простой блок клеток.
+        /// </summary>
+        public const bool GameBlock = true;
+
+        /// <summary>
+        /// Тип блока:
+        /// 'B' - простой блок клеток,
+        /// 'F' - игровое поле целиком.
+        /// </summary>
+        private char blockType;
+
+        /// <summary>
+        /// Указывает, является ли данный блок, простым блоком клеток.
+        /// </summary>
+        public bool IsGameBlock => (blockType == 'B');
+
+        /// <summary>
+        /// Указывает, является ли данный блок, игровым полем.
+        /// </summary>
+        public bool IsGameField => (blockType == 'F');
+
+        /// <summary>
         /// Координата X блока.
         /// </summary>
         public int X { get => rectangle.X; private set => rectangle.X = value; }
@@ -213,8 +240,8 @@ namespace life
         /// Читает блок игрового поля из файла.
         /// </summary>
         /// <param name="filename">Имя файла.</param>
-        /// <returns>Размер прочитанного поля.</returns>
-        public Size LoadFromFile(string filename)
+        /// <returns>true - если загрузка успешна, false - если ошибка.</returns>
+        public bool LoadFromFile(string filename)
         {
             if (filename != null)
             {
@@ -227,6 +254,8 @@ namespace life
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message + "\npublic void Block::LoadFromFile(string filename)");
+
+                        return false;
                     }
                 }
             }
@@ -235,17 +264,21 @@ namespace life
                 rectangle = Rectangle.Empty;
             }
 
-            return Size;
+            return true;
         }
 
         /// <summary>
         /// Читает блок клеток из потока.
         /// </summary>
         /// <param name="reader">Поток для чтения.</param>
-        /// <returns>Размер блока.</returns>
-        public Size Load(StreamReader reader)
+        public void Load(StreamReader reader)
         {
             Clear();
+
+            {
+                blockType = (char)reader.Read();
+                reader.Read();
+            }
 
             Width = ReadInt(reader);
             Height = ReadInt(reader);
@@ -256,8 +289,6 @@ namespace life
             {
                 Add(ReadCell(reader));
             }
-
-            return Size;
         }
 
         /// <summary>
@@ -266,7 +297,8 @@ namespace life
         /// {width},{height},{Count}:{x},{y},{isStaticCell = 'n'/'s'};...{xn},{yn}{'n'\'s'};
         /// </summary>
         /// <param name="filename">Имя файла.</param>
-        public void SaveToFile(string filename)
+        /// <param name="typeBlock">Тип блока: true - простой блок, false - игровое поле</param>
+        public void SaveToFile(string filename, bool typeBlock = GameField)
         {
             if (cells.Count != 0 && filename != null)
             {
@@ -274,7 +306,7 @@ namespace life
                 {
                     using (StreamWriter writer = new StreamWriter(filename))
                     {
-                        Save(writer);
+                        Save(writer, typeBlock);
                     }
                 }
                 catch (Exception e)
@@ -288,8 +320,11 @@ namespace life
         /// Сохраняет блок клеток в потоке.
         /// </summary>
         /// <param name="writer">Поток для сохранения.</param>
-        private void Save(StreamWriter writer)
+        /// <param name="typeBlock">Тип блока: true - простой блок, false - игровое поле</param>
+        private void Save(StreamWriter writer, bool typeBlock)
         {
+            writer.Write("{0},", (typeBlock) ? 'B' : 'F');
+
             writer.Write($"{Size.Width},{Size.Height},{cells.Count}:");
 
             foreach (var cell in cells)

@@ -26,7 +26,7 @@ namespace life
         /// <summary>
         /// Форма настройки нового игрового поля.
         /// </summary>
-        private SettingField settingField;
+        private NewField settingField;
 
         /// <summary>
         /// Игровое поле.
@@ -115,7 +115,7 @@ namespace life
 
             InitField();
 
-            settingField = new SettingField(field, cellsComboBox,
+            settingField = new NewField(field, cellsComboBox,
                                             staticCellsComboBox,
                                             CellsComboBox_SelectedIndexChanged,
                                             StaticCellsComboBox_SelectedIndexChanged,
@@ -166,18 +166,6 @@ namespace life
             bitmap = new Bitmap(panelField.ClientSize.Width, panelField.ClientSize.Height);
 
             bitmapGraphics = Graphics.FromImage(bitmap);
-        }
-
-        /// <summary>
-        /// Устанавливает скорость игры, изменением интервала таймера.
-        /// Изменяет значение скорости в lblSpeedGame.
-        /// </summary>
-        /// <param name="value">Текущее положение ползунка hsbTimer.Value</param>
-        private void SetSpeedGame(int value)
-        {
-            timer.Interval = (value < 10) ? 500 : 510 - value;
-
-            lblSpeedGame.Text = $"Скорость {(value / 10),2:d}";
         }
 
         /// <summary>
@@ -249,25 +237,6 @@ namespace life
             };
 
             StartPosition = FormStartPosition.CenterScreen;
-        }
-
-        /// <summary>
-        /// Загрузка игрового поля с изменением размера клетки
-        /// </summary>
-        private void LoadField()
-        {
-            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
-            {
-                return;
-            }
-
-            Block block = new Block();
-
-            Size size = block.LoadFromFile(openFileDialog.FileName);
-
-            field.SetField(block);
-
-            ResizeField(size.Width, size.Height);
         }
 
         /// <summary>

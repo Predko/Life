@@ -12,7 +12,7 @@ namespace life
     /// <summary>
     /// Форма для настройки параметров игрового поляю
     /// </summary>
-    public partial class SettingField : Form
+    public partial class NewField : Form
     {
         /// <summary>
         /// Список обычных клеток.
@@ -74,7 +74,7 @@ namespace life
         /// <param name="cellsSelectedIndexChanged">Обработчик изменения индекса обычных клеток в ComboBox.</param>
         /// <param name="StaticCellsSelectedIndexChanged">Обработчик изменения индекса статичных клеток в ComboBox.</param>
         /// <param name="CellsComboBox_DrawItem">Обработчик перерисовки пункта ComboBox.</param>
-        public SettingField(Field f, ComboBox cbNormal, ComboBox cbStatic, 
+        public NewField(Field f, ComboBox cbNormal, ComboBox cbStatic, 
                             EventHandler cellsSelectedIndexChanged, 
                             EventHandler StaticCellsSelectedIndexChanged, 
                             DrawItemEventHandler CellsComboBox_DrawItem)

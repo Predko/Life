@@ -194,7 +194,7 @@ namespace life
             this.lblSpeedGame.Name = "lblSpeedGame";
             this.lblSpeedGame.Size = new System.Drawing.Size(177, 25);
             this.lblSpeedGame.TabIndex = 0;
-            this.lblSpeedGame.Text = "Скорость";
+            this.lblSpeedGame.Text = "Speed\r\n";
             this.lblSpeedGame.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // hsbTimer
@@ -335,8 +335,8 @@ namespace life
             this.saveBlockToolStripMenuItem,
             this.loadBlockToolStripMenuItem,
             this.copyToolStripMenuItem,
-            this.deleteToolStripMenuItem,
-            this.PasteToolStripMenuItem});
+            this.PasteToolStripMenuItem,
+            this.deleteToolStripMenuItem});
             this.contextMenuStripPanelField.Name = "contextMenuStripPanelField";
             this.contextMenuStripPanelField.Size = new System.Drawing.Size(172, 164);
             // 

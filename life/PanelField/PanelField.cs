@@ -34,9 +34,17 @@ namespace life
 
             panelField.MouseEnter += PanelField_MouseEnter;
 
-            panelField.ContextMenuStrip = contextMenuStripPanelField;
+            InitContextMenuStrip();
         }
     }
+
+    //private ToolStripMenuItem saveBlockToolStripMenuItem;
+    //private ToolStripMenuItem loadBlockToolStripMenuItem;
+    //private ToolStripMenuItem copyToolStripMenuItem;
+    //private ToolStripMenuItem deleteToolStripMenuItem;
+    //private ToolStripMenuItem PasteToolStripMenuItem;
+
+
 
     class PanelField : Panel
     {

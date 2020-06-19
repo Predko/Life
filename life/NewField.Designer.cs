@@ -1,6 +1,6 @@
 ﻿namespace life
 {
-    partial class SettingField
+    partial class NewField
     {
         /// <summary>
         /// Required designer variable.

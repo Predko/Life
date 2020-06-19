@@ -88,7 +88,10 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="LogOfSteps.cs" />
-    <Compile Include="PanelField.cs">
+    <Compile Include="PanelField\ContextMSPanelField.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PanelField\PanelField.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="PointExtentionMethods.cs" />
@@ -99,17 +102,17 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SelectingEvent.cs">
+    <Compile Include="PanelField\SelectingEvent.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectionMode.cs">
+    <Compile Include="PanelField\SelectionMode.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SettingField.cs">
+    <Compile Include="NewField.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SettingField.Designer.cs">
-      <DependentUpon>SettingField.cs</DependentUpon>
+    <Compile Include="NewField.Designer.cs">
+      <DependentUpon>NewField.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -123,8 +126,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="SettingField.resx">
-      <DependentUpon>SettingField.cs</DependentUpon>
+    <EmbeddedResource Include="NewField.resx">
+      <DependentUpon>NewField.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
