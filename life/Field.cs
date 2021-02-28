@@ -240,6 +240,21 @@ namespace life
         }
 
         /// <summary>
+        /// Удаляет с игрового поля клетки, из данного прямоугольника.
+        /// </summary>
+        /// <param name="cells">Список клеток для удаления.</param>
+        public void RemoveCells(Rectangle selected)
+        {
+            foreach (Cell cell in field)
+            {
+                if (selected.Contains(cell.Location))
+                {
+                    field.Remove(cell);
+                }
+            }
+        }
+
+        /// <summary>
         /// Добавляет клетки, близлежащие к клетке с данными координатами, в список активных клеток.
         /// </summary>
         /// <param name="x">Координата x клетки.</param>

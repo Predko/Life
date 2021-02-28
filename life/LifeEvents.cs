@@ -369,6 +369,11 @@ namespace life
         {
             var block = LoadBlock();
 
+            if (block == null)
+            {
+                return false;
+            }
+
             Size size = block.Size;
 
             if (block.IsGameBlock)

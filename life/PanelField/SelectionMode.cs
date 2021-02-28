@@ -215,10 +215,10 @@ namespace life
         /// Копирует выбранный блок в указанную точку.
         /// </summary>
         /// <param name="current">Положение блока.</param>
-        private void CopySelected(Point current)
+        private void MoveSelected(Point current)
         {
             // Прямоугольник выделения на месте установки блока.
-            Rectangle selection = OffsetSelection(current);
+            Rectangle selection = GetSelectionFromMouseCursor(current);
 
             // Меняем стартовые и конечные значения прямоугольника выделения
             startSelection = endSelection = selection.Location;
@@ -252,25 +252,69 @@ namespace life
                 field.PrepareField();
             }
 
+            //selectedCells.Clear();
+            //selectedCells.AddRange(field.GetCells(fieldSelection));
+
             // Отрисовываем блок в новом месте.
             field.Draw(bitmapGraphics, BitmapCells, fieldSelection);
 
-            // Сохраняем новое состояние игрового поля.
-            {
-                SavedBitmapField.Dispose();
-
-                SavedBitmapField = new Bitmap(bitmap);
-
-                selectedCells.Clear();
-                selectedCells.AddRange(field.GetCells(fieldSelection));
-
-                // Отрисовываем прямоугольник выделения.
-                bitmapGraphics.FillRectangle(OpacityBrush, selection);
-
-                oldSelection = selection;
-            }
+            SaveNewFieldState(selection);
 
             panelField.Invalidate();
+        }
+
+        private void SaveNewFieldState(Rectangle selection)
+        {
+            // Сохраняем новое состояние игрового поля.
+            if (SavedBitmapField != null)
+            {
+                SavedBitmapField.Dispose();
+            }
+
+            SavedBitmapField = new Bitmap(bitmap);
+
+            // Отрисовываем прямоугольник выделения.
+            bitmapGraphics.FillRectangle(OpacityBrush, selection);
+
+            oldSelection = selection;
+        }
+
+        /// <summary>
+        /// Переходит в режим перемещения блока.
+        /// Блок на старом месте удаляется с поля.</summary>
+        /// <param name="current">Текущие координаты мыши.</param>
+        private void StartMoveBlock(Point current)
+        {
+            // Вычисляем смещение курсора мыши относительно начала выделения.
+            current.Offset(-startSelection.X, -startSelection.Y);
+
+            OffsetMoveLocation = new Point()
+            {
+                X = -current.X,
+                Y = -current.Y
+            };
+
+            Rectangle selection = Selection;
+
+            // Прямоугольник выделения в координатах игрового поля.
+            Rectangle fieldSelection = new Rectangle()
+            {
+                X = selection.X / cellSize,
+                Y = selection.Y / cellSize,
+                Width = selection.Width / cellSize,
+                Height = selection.Height / cellSize
+            };
+
+            field.RemoveCells(fieldSelection);
+
+            field.RemoveNoLivesCells();
+
+            field.PrepareField();
+
+            // Перерисовываем игровое поле в прямоугольнике выделения.
+            field.Draw(bitmapGraphics, BitmapCells, fieldSelection);
+
+            SaveNewFieldState(selection);
         }
 
         /// <summary>
@@ -279,7 +323,7 @@ namespace life
         /// <param name="current">Положение блока.</param>
         private void DrawSelectedBlock(Point current)
         {
-            Rectangle selection = OffsetSelection(current);
+            Rectangle selection = GetSelectionFromMouseCursor(current);
 
             RedrawOldSelection();
 
@@ -293,19 +337,19 @@ namespace life
         }
 
         /// <summary>
-        /// Вычисляет координаты прямоугольника выделения, смещённого в указанную точку.
+        /// Вычисляет прямоугольник выделения смещения из координат курсора мыши.
         /// </summary>
         /// <param name="current">Последние координаты мыши.</param>
-        /// <returns></returns>
-        private Rectangle OffsetSelection(Point current)
+        /// <returns>Прямоугольник выделения, соответствующий положению курсора мыши.</returns>
+        private Rectangle GetSelectionFromMouseCursor(Point current)
         {
+            current.Offset(OffsetMoveLocation);
+
             current = TruncatePoint(current, cellSize);
 
-            startMoveLocation = TruncatePoint(startMoveLocation, cellSize);
-
-            current.Offset(-startMoveLocation.X, -startMoveLocation.Y);
-
             Rectangle selection = Selection;
+
+            current.Offset(-selection.X, -selection.Y);
 
             selection.Offset(current);
 
@@ -315,11 +359,8 @@ namespace life
         /// <summary>
         /// Отрисовка прямоугольника выделения.
         /// </summary>
-        /// <param name="current">Вторая координата прямоугольника выделения.</param>
-        private void DrawSelectionRectangle(Point current)
+        private void DrawSelectionRectangle()
         {
-            endSelection = current;
-
             Rectangle selection = Selection;
 
             RedrawOldSelection();
@@ -334,11 +375,27 @@ namespace life
         /// <summary>
         /// Восстанавливает исходное изображение в последнем выбранном прямоугольнике
         /// </summary>
-        private void RedrawOldSelection() => bitmapGraphics.DrawImage(SavedBitmapField,
-                                       oldSelection.X,
-                                       oldSelection.Y,
-                                       oldSelection,
-                                       GraphicsUnit.Pixel);
+        private void RedrawOldSelection()
+        {
+            // Определяем, находится ли отрисовываемый прямоугольник в границах игрового поля.
+            // Если да - отрисовываем пересечение его с игровым полем.
+            Rectangle fieldRectangle = new Rectangle(panelField.Location,
+                                                     new Size(panelField.Width, panelField.Height));
+
+            Rectangle redrawRectangle = oldSelection;
+                //Rectangle.Intersect(oldSelection, fieldRectangle);
+
+            //ToDo: неправильная отрисовка в верхней и нижней части экрана...  
+
+            if (redrawRectangle != Rectangle.Empty)
+            {
+                bitmapGraphics.DrawImage(SavedBitmapField,
+                                         redrawRectangle.X,
+                                         redrawRectangle.Y,
+                                         redrawRectangle,
+                                         GraphicsUnit.Pixel);
+            }
+        }
 
         /// <summary>
         /// Выход из режима выбора блока игрового поля.

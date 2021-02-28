@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +49,29 @@ namespace life
 
             if (block.IsGameBlock)
             {
+                selectedCells = block;
 
+                isSelected = true;
+
+                isMoveMode = true;
+
+                // Размещаем блок за пределами игрового поля + cellSize.
+                startSelection = endSelection = new Point(panelField.Right + cellSize, panelField.Top + cellSize);
+
+                endSelection.Offset(block.Width * cellSize, block.Height * cellSize);
+
+                StartMoveBlock(startSelection);
+
+                // Перемещаем в позицию мыши
+                
+                //To Do 
+                //1. Вычислить координаты расположения блока, чтобы он не выходил за пределы игрового поля.
+                //2. Если блок не помещается в пределах игрового поля:
+                //   - отказать во вставке,
+                //   - или обрезать блок, после запроса пользователю,
+                //   - или изменить размеры игрового поля, после запроса пользователю.
+
+                DrawSelectedBlock(panelField.Location);
             }
 
         }

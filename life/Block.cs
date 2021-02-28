@@ -42,43 +42,43 @@ namespace life
         public bool IsGameField => (blockType == 'F');
 
         /// <summary>
-        /// Координата X блока.
+        /// Координата X блока в клетках игрового поля.
         /// </summary>
         public int X { get => rectangle.X; private set => rectangle.X = value; }
 
         /// <summary>
-        /// Координата Y блока.
+        /// Координата Y блока в клетках игрового поля.
         /// </summary>
         public int Y { get => rectangle.Y; private set => rectangle.Y = value; }
 
         /// <summary>
-        /// Ширина блока.
+        /// Ширина блока в клетках игрового поля.
         /// </summary>
         public int Width { get => rectangle.Width; private set => rectangle.Width = value; }
 
         /// <summary>
-        /// Высота блока.
+        /// Высота блока в клетках игрового поля.
         /// </summary>
         public int Height { get => rectangle.Height; private set => rectangle.Height = value; }
 
         /// <summary>
-        /// Размер блока.
+        /// Размер блока в клетках игрового поля.
         /// </summary>
         public Size Size => rectangle.Size;
 
         /// <summary>
-        /// Прямоугольник, ограничивающий блок.
+        /// Прямоугольник, ограничивающий блок в клетках игрового поля.
         /// </summary>
         public Rectangle Rectangle => rectangle;
 
         /// <summary>
-        /// Возвращает начальную точку прямоугольника, ограничивающего блок.
+        /// Возвращает начальную точку прямоугольника, ограничивающего блок в клетках игрового поля.
         /// </summary>
         public Point Location => rectangle.Location;
 
 
         /// <summary>
-        /// Прямоугольник, ограничивающий блок.
+        /// Прямоугольник, ограничивающий блок в клетках игрового поля.
         /// </summary>
         private Rectangle rectangle;
 
@@ -94,15 +94,21 @@ namespace life
         private void AdjustRectangle(Cell cell)
         {
             if (cell.Location.X < X)
+            {
+                Width += X - cell.Location.X;
                 X = cell.Location.X;
+            }
             else
             if (cell.Location.X >= X + Width)
                 Width = cell.Location.X - X + 1;
 
             if (cell.Location.Y < Y)
+            {
+                Height += Y - cell.Location.Y;
                 Y = cell.Location.Y;
+            }
             else
-            if (cell.Location.Y > Height)
+            if (cell.Location.Y >= Y + Height)
                 Height = cell.Location.Y - Y + 1;
         }
 
@@ -176,7 +182,7 @@ namespace life
         /// <summary>
         /// Смещаем блок в указанную точку.
         /// </summary>
-        /// <param name="start">Новая начальная точка блока.</param>
+        /// <param name="start">Новая начальная точка блока в клетках игрового поля.</param>
         public void SetStartPoint(Point start)
         {
             // Вычисляем смещение координат.
@@ -345,6 +351,7 @@ namespace life
 
         /// <summary>
         /// Отрисовывает блок на указанном игровом поле в указанные координаты x и y.
+        /// Координаты в клетках игрового поля.
         /// </summary>
         /// <param name="field">Игровое поле для отрисовки блока.</param>
         /// <param name="g">Экземпляр Graphics для отрисовки.</param>

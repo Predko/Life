@@ -52,9 +52,9 @@ namespace life
         private bool isMoveMode = false;
 
         /// <summary>
-        /// Стартовая точка в режиме перемещения.
+        /// Смещение курсора мыши относительно начала выделения.
         /// </summary>
-        private Point startMoveLocation;
+        private Point OffsetMoveLocation;
 
         /// <summary>
         /// Режим редактирования клетки игрового поля.
@@ -171,7 +171,7 @@ namespace life
         {
             if (e.Button == MouseButtons.Left)
             {
-                LeftMouseDawn(e.Location);
+                LeftMouseDown(e.Location);
             }
         }
 
@@ -179,7 +179,7 @@ namespace life
         /// Обработка нажатия на левую клавишу мыши.
         /// </summary>
         /// <param name="e"></param>
-        private void LeftMouseDawn(Point current)
+        private void LeftMouseDown(Point current)
         {
             if (IsSelected)
             {
@@ -189,7 +189,7 @@ namespace life
                     // мышь находится внутри выделенного блока - переходим в режим перемещения блока.
                     isMoveMode = true;
 
-                    startMoveLocation = current;
+                    StartMoveBlock(current);
                 }
                 else
                 {
@@ -225,11 +225,6 @@ namespace life
             {
                 LeftMouseUp(e.Location);
             }
-            else
-            if (e.Button == MouseButtons.Right)
-            {
-
-            }
         }
 
         /// <summary>
@@ -250,8 +245,8 @@ namespace life
             else
             if (isMoveMode)
             {
-                // Копируем выбранный блок в в новую позицию. 
-                CopySelected(current);
+                // Перемещаем выбранный блок в в новую позицию. 
+                MoveSelected(current);
             }
             else
             if (IsSetCellMode)
@@ -277,8 +272,11 @@ namespace life
                 if (IsSelectionMode)
                 {
                     // Мы в режиме выделения.
+                    // Запоминаем конечную точку выделения
+                    endSelection = e.Location;
+
                     // Отрисовываем прямоугольник выделения.
-                    DrawSelectionRectangle(e.Location);
+                    DrawSelectionRectangle();
                 }
                 else
                 if (isMoveMode)
